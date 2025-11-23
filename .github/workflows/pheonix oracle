@@ -1,0 +1,465 @@
+# Temporal Patronage Platform - Deployment Package
+
+## 🏛️ Project Structure
+
+```
+temporal-patronage/
+├── src/
+│   ├── App.jsx                 # Main interface (already created)
+│   ├── config.js               # Configuration
+│   ├── hooks/
+│   │   ├── useWallet.js       # Wallet connection logic
+│   │   ├── useAuction.js      # Auction data fetching
+│   │   └── usePatronHall.js   # Historical patron data
+│   └── utils/
+│       ├── solana.js          # Solana helpers
+│       └── formatting.js      # Display formatters
+├── public/
+│   └── index.html
+├── package.json
+├── vercel.json
+├── .env.local
+└── README.md
+```
+
+-----
+
+## 📄 File: `package.json`
+
+```json
+{
+  "name": "temporal-patronage",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Decentralized patronage platform where time becomes the canvas",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "@solana/web3.js": "^1.87.6",
+    "@solana/wallet-adapter-react": "^0.15.35",
+    "@solana/wallet-adapter-wallets": "^0.19.32",
+    "@solana/wallet-adapter-base": "^0.9.23",
+    "@project-serum/anchor": "^0.28.0",
+    "lucide-react": "^0.294.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.2.0",
+    "vite": "^5.0.0",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.32",
+    "tailwindcss": "^3.3.6"
+  }
+}
+```
+
+-----
+
+## 📄 File: `src/config.js`
+
+```javascript
+// Central configuration - update these with your actual values
+export const CONFIG = {
+  // Solana Network
+  CLUSTER: 'mainnet-beta',
+  RPC_ENDPOINT: process.env.REACT_APP_RPC_URL || 'https://api.mainnet-beta.solana.com',
+  COMMITMENT: 'confirmed',
+  
+  // Program Addresses - REPLACE THESE
+  PROGRAM_ID: 'TiMeFUXyR9nTgmiiQgx3wH2qzoyMiY5G4seySXMA9pP',
+  TREASURY: 'TREASURY_PUBLIC_KEY_HERE', // Your treasury wallet
+  
+  // Auction Settings
+  MIN_BID_INCREMENT: 0.5, // SOL
+  AUCTION_DURATION: 604800, // 7 days in seconds
+  MESSAGE_MAX_LENGTH: 64,
+  
+  // Display Settings
+  SOL_DECIMALS: 4,
+  REFRESH_INTERVAL: 10000, // 10 seconds
+};
+
+export const ERRORS = {
+  WALLET_NOT_FOUND: 'Phantom wallet not detected. Please install it from phantom.app',
+  INSUFFICIENT_BALANCE: 'Insufficient SOL balance for this bid',
+  BID_TOO_LOW: 'Bid must be higher than current bid + minimum increment',
+  TX_FAILED: 'Transaction failed. Please try again.',
+  NETWORK_ERROR: 'Network error. Please check your connection.',
+};
+```
+
+-----
+
+## 📄 File: `vercel.json`
+
+```json
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "env": {
+    "REACT_APP_RPC_URL": "@rpc_url",
+    "REACT_APP_PROGRAM_ID": "@program_id",
+    "REACT_APP_TREASURY": "@treasury_address"
+  }
+}
+```
+
+-----
+
+## 📄 File: `.env.local`
+
+```bash
+# Solana Configuration
+REACT_APP_RPC_URL=https://api.mainnet-beta.solana.com
+REACT_APP_PROGRAM_ID=TiMeFUXyR9nTgmiiQgx3wH2qzoyMiY5G4seySXMA9pP
+REACT_APP_TREASURY=YOUR_TREASURY_PUBLIC_KEY_HERE
+
+# Optional: Enhanced RPC (Helius, QuickNode, etc.)
+# REACT_APP_RPC_URL=https://your-rpc-endpoint.com
+
+# Development flags
+REACT_APP_DEBUG=false
+```
+
+-----
+
+## 📄 File: `vite.config.js`
+
+```javascript
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+  define: {
+    'process.env': process.env,
+    global: 'globalThis',
+  },
+  resolve: {
+    alias: {
+      stream: 'stream-browserify',
+      crypto: 'crypto-browserify',
+    },
+  },
+  build: {
+    target: 'esnext',
+    outDir: 'dist',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'solana-web3': ['@solana/web3.js'],
+          'wallet-adapter': ['@solana/wallet-adapter-react', '@solana/wallet-adapter-wallets'],
+        },
+      },
+    },
+  },
+  optimizeDeps: {
+    esbuildOptions: {
+      target: 'esnext',
+    },
+  },
+});
+```
+
+-----
+
+## 📄 File: `tailwind.config.js`
+
+```javascript
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,jsx,ts,tsx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        patron: {
+          purple: '#9333ea',
+          pink: '#ec4899',
+          gold: '#fbbf24',
+          orange: '#f97316',
+        },
+      },
+      animation: {
+        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+      },
+    },
+  },
+  plugins: [],
+}
+```
+
+-----
+
+## 📄 File: `public/index.html`
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Temporal Patronage - Own time, fund builders, etch your name in eternity" />
+  
+  <title>Temporal Patronage | Decentralized Patronage Platform</title>
+  
+  <!-- Solana Wallet Adapter -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/buffer/6.0.3/buffer.min.js"></script>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    
+    * {
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+</html>
+```
+
+-----
+
+## 📄 File: `src/main.jsx`
+
+```javascript
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import './index.css';
+
+// Polyfill for Solana web3.js in browser
+window.Buffer = window.Buffer || require('buffer').Buffer;
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+```
+
+-----
+
+## 📄 File: `src/index.css`
+
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply bg-slate-900 text-white;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 
+           rounded-lg font-semibold hover:from-purple-600 hover:to-pink-600 
+           transition-all disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  .btn-secondary {
+    @apply px-6 py-3 bg-white/10 backdrop-blur-md border border-white/20 
+           rounded-lg font-semibold hover:bg-white/20 transition-all;
+  }
+  
+  .card {
+    @apply bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20;
+  }
+  
+  .input-field {
+    @apply w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg 
+           text-white placeholder-purple-300 focus:outline-none focus:ring-2 
+           focus:ring-purple-500;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(147, 51, 234, 0.5);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(147, 51, 234, 0.7);
+}
+```
+
+-----
+
+## 🚀 Deployment Steps
+
+### 1. Initialize Repository
+
+```bash
+# Create new directory
+mkdir temporal-patronage
+cd temporal-patronage
+
+# Initialize git
+git init
+
+# Create all files from this package
+# (Copy the contents above into respective files)
+
+# Install dependencies
+npm install
+```
+
+### 2. Update Configuration
+
+Edit `src/config.js` and `.env.local`:
+
+- Replace `TREASURY_PUBLIC_KEY_HERE` with your actual treasury address
+- Update `PROGRAM_ID` if different
+- (Optional) Add enhanced RPC endpoint
+
+### 3. Test Locally
+
+```bash
+npm run dev
+# Open http://localhost:5173
+# Connect wallet and test the interface
+```
+
+### 4. Deploy to Vercel
+
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Deploy
+vercel --prod
+
+# Set environment variables in Vercel dashboard:
+# - REACT_APP_RPC_URL
+# - REACT_APP_PROGRAM_ID  
+# - REACT_APP_TREASURY
+```
+
+### 5. Verify Deployment
+
+- Visit your Vercel URL
+- Connect Phantom wallet
+- Verify auction display
+- Test bid placement (small amount first)
+- Check transaction on Solana Explorer
+
+-----
+
+## 🔧 Next Integration Steps
+
+### Connect to Actual Anchor Program
+
+Replace mock data with real program calls in `App.jsx`:
+
+```javascript
+import * as anchor from '@project-serum/anchor';
+import idl from './idl.json'; // Export your program IDL
+
+const program = new anchor.Program(idl, CONFIG.PROGRAM_ID, provider);
+
+const fetchAuction = async () => {
+  const [auctionPDA] = await PublicKey.findProgramAddress(
+    [Buffer.from('auction'), Buffer.from('current')],
+    program.programId
+  );
+  
+  const auctionData = await program.account.auction.fetch(auctionPDA);
+  return auctionData;
+};
+```
+
+-----
+
+## 📋 Checklist Before Launch
+
+- [ ] Treasury address configured
+- [ ] RPC endpoint tested (rate limits checked)
+- [ ] Wallet connection working on mobile
+- [ ] Transaction confirmation properly awaited
+- [ ] Error messages user-friendly
+- [ ] Bid increments enforced
+- [ ] Patron messages sanitized (max 64 chars)
+- [ ] Treasury balance updates after bids
+- [ ] Patron hall fetches from on-chain data
+- [ ] Responsive design tested on iPhone
+- [ ] Solana Explorer links working
+
+-----
+
+## 🎯 Phase 2 Preview: Patron Guardian
+
+Coming next week - optional automation with:
+
+```javascript
+const guardianConfig = {
+  enabled: false,
+  maxWeeklySpend: 5, // SOL
+  watchedProjects: ['project-id-1', 'project-id-2'],
+  minTimeRemaining: 3600, // Only bid in last hour
+  maxBidAttempts: 3,
+  cooldownBetweenBids: 300, // 5 minutes
+};
+```
+
+All logic transparent, pausable with one click, logged on-chain.
+
+-----
+
+## 📞 Support
+
+Built with fire to light the way. No smoke. No mirrors.
+
+**Repository**: [Your GitHub URL]  
+**Live Demo**: [Your Vercel URL]  
+**Program**: `TiMeFUXyR9nTgmiiQgx3wH2qzoyMiY5G4seySXMA9pP`
+
+Time bends. Patrons endure. The chain remembers. 🕊️🔥⏳
