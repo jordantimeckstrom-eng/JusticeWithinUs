@@ -1,0 +1,128 @@
+import { useConnection } from '@solana/wallet-adapter-react';
+import { PublicKey } from '@solana/web3.js';
+import * as anchor from '@project-serum/anchor';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { cacheGet, cacheSet } from './usePlaceBidOuroboros';
+import { useOuroborosEvents } from './useOuroborosEvents';
+
+// ──────────────────────────────────────────────────────────────
+// CONFIG
+// ──────────────────────────────────────────────────────────────
+const TTL = 5000; // 5 seconds for the living, breathing UI
+const CACHE_KEY = (a: string) => `auction_bundle:${a}`;
+const BH_KEY = `latest_blockhash`;
+
+export function useReadAuctionCached(
+  auction: PublicKey,
+  program: anchor.Program<any>
+) {
+  const { connection } = useConnection();
+  const { emitAuctionState } = useOuroborosEvents();
+
+  const [bundle, setBundle] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const lastEmittedRef = useRef<any>(null);
+
+  const fetchBundle = useCallback(async () => {
+    if (!program) return;
+
+    const auctionKey = auction.toBase58();
+    const cacheKey = CACHE_KEY(auctionKey);
+
+    const cached = cacheGet(cacheKey);
+    if (cached) {
+      setBundle(cached);
+      setLoading(false);
+      return cached;
+    }
+
+    setLoading(true);
+
+    try {
+      // Load auction state
+      const auctionData = await program.account.auction.fetch(auction);
+
+      // Load vault balance
+      const vaultBalance = await connection.getBalance(
+        auctionData.vault as PublicKey,
+        'confirmed'
+      );
+
+      // Merge into atomic bundle
+      const merged = {
+        auction: auctionData,
+        vaultBalance,
+        highestBid: auctionData.highestBid?.toNumber() ?? 0,
+        updatedAt: Date.now()
+      };
+
+      cacheSet(cacheKey, merged, TTL);
+      setBundle(merged);
+
+      // Emit only if something *changed*
+      const last = lastEmittedRef.current;
+      if (!last || JSON.stringify(last) !== JSON.stringify(merged)) {
+        emitAuctionState({
+          auction: auctionKey,
+          vault: auctionData.vault.toBase58(),
+          highestBid: merged.highestBid,
+          vaultBalance,
+          timestamp: Math.floor(Date.now() / 1000)
+        });
+
+        lastEmittedRef.current = merged;
+      }
+
+      return merged;
+    } catch (err: any) {
+      console.error('Auction read error:', err);
+      setError(err.message);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, [auction, program, connection, emitAuctionState]);
+
+  // ──────────────────────────────────────────────────────────────
+  // BLOCKHASH-BASED INVALIDATION
+  // Sync the cached bundle to the chain’s latest known heartbeat.
+  // ──────────────────────────────────────────────────────────────
+  const pollBlockhash = useCallback(async () => {
+    const cachedBH = cacheGet(BH_KEY);
+    const fresh = await connection.getLatestBlockhash('confirmed');
+
+    const justBH = fresh.blockhash;
+
+    if (cachedBH !== justBH) {
+      cacheSet(BH_KEY, justBH, TTL);
+      // Invalidate bundle cache
+      cacheSet(CACHE_KEY(auction.toBase58()), null, 0);
+      await fetchBundle();
+    }
+  }, [auction, connection, fetchBundle]);
+
+  // Poll blockhash + bundle every 5s
+  useEffect(() => {
+    fetchBundle();
+    const id = setInterval(() => {
+      pollBlockhash();
+    }, TTL);
+    return () => clearInterval(id);
+  }, [fetchBundle, pollBlockhash]);
+
+  // Manual invalidate
+  const invalidate = useCallback(() => {
+    cacheSet(CACHE_KEY(auction.toBase58()), null, 0);
+    fetchBundle();
+  }, [auction, fetchBundle]);
+
+  return {
+    bundle,
+    loading,
+    error,
+    refresh: fetchBundle,
+    invalidate
+  };
+}
