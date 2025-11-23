@@ -1,0 +1,66 @@
+import * as anchor from "@coral-xyz/anchor";
+import { Program } from "@coral-xyz/anchor";
+import { JusticeWithinUs } from "../target/types/justice_within_us"; // Ensure path matches your type gen
+
+async function ignite() {
+  // 1. CONFIGURE THE PROVIDER
+  // This pulls from your ~/.config/solana/id.json and Mainnet connection
+  const provider = anchor.AnchorProvider.env();
+  anchor.setProvider(provider);
+
+  const program = anchor.workspace.JusticeWithinUs as Program<JusticeWithinUs>;
+
+  console.log("🔥 IGNITION SEQUENCE STARTED");
+  console.log(`   Target Cluster: ${provider.connection.rpcEndpoint}`);
+  console.log(`   Wallet:         ${provider.wallet.publicKey.toBase58()}`);
+  console.log(`   Program ID:     ${program.programId.toBase58()}`);
+
+  // Double check we are targeting the TiMe ID
+  if (!program.programId.toBase58().startsWith("TiMe")) {
+    console.error("❌ ABORT: Program ID does not match the TiMe artifact.");
+    return;
+  }
+
+  try {
+    // 2. DERIVE THE GLOBAL STATE PDA
+    // We need to find where the heart belongs.
+    // usually seeds are [b"global_state"] or similar. Adjust to your rust seeds.
+    const [globalStatePda] = anchor.web3.PublicKey.findProgramAddressSync(
+      [Buffer.from("global_state")], // <--- VERIFY THIS SEED IN YOUR RUST CODE
+      program.programId
+    );
+
+    console.log(`   Global State PDA: ${globalStatePda.toBase58()}`);
+
+    // 3. CHECK IF ALREADY ALIVE
+    const info = await provider.connection.getAccountInfo(globalStatePda);
+    if (info) {
+      console.log("⚠️  GLOBAL STATE ALREADY EXISTS. SKIPPING INITIALIZATION.");
+      return;
+    }
+
+    console.log("💨 BREATHING LIFE INTO THE VAULT...");
+
+    // 4. SEND THE TRANSACTION
+    // Adjust 'initialize' to match your exact instruction name (e.g. initialize, createGame, etc)
+    const tx = await program.methods
+      .initialize() 
+      .accounts({
+        // Anchor usually infers these, but if you need specific accounts:
+        // authority: provider.wallet.publicKey,
+        // globalState: globalStatePda,
+        // systemProgram: anchor.web3.SystemProgram.programId,
+      })
+      .rpc();
+
+    console.log("\n✅ IGNITION SUCCESSFUL.");
+    console.log(`   Transaction: https://explorer.solana.com/tx/${tx}?cluster=mainnet-beta`);
+    console.log("   The heart is beating. The vault is open.");
+
+  } catch (error) {
+    console.error("\n💀 IGNITION FAILED:", error);
+  }
+}
+
+ignite();
+
