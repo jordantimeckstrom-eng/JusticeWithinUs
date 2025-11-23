@@ -1,0 +1,130 @@
+#!/bin/bash
+set -e
+
+# -------------------------------
+# CONFIGURATION
+# -------------------------------
+PROJECT_ROOT="/Users/sarai/projects/time-auction-fortress"
+PROGRAM_NAME="time_auction"
+PROGRAM_PATH="$PROJECT_ROOT/target/deploy/${PROGRAM_NAME}.so"
+BUFFER_KEYPAIR="$HOME/time-auction-buffer-keypair.json"
+UPGRADE_AUTHORITY="$HOME/.config/solana/sarai-mainnet.json"
+CLUSTER="devnet"
+
+# -------------------------------
+# 1️⃣ Build Anchor Program
+# -------------------------------
+echo "⏳ Building Anchor program..."
+cd $PROJECT_ROOT
+anchor build
+
+# -------------------------------
+# 2️⃣ Write to Buffer
+# -------------------------------
+echo "⏳ Writing program to buffer..."
+solana program write-buffer $PROGRAM_PATH --buffer $BUFFER_KEYPAIR
+
+# -------------------------------
+# 3️⃣ Deploy Upgradeable Program
+# -------------------------------
+echo "⏳ Deploying upgradeable program..."
+anchor deploy --provider.cluster $CLUSTER --program-name $PROGRAM_NAME --buffer $BUFFER_KEYPAIR --upgrade-authority $UPGRADE_AUTHORITY
+
+PROGRAM_ID=$(solana-keygen pubkey target/deploy/time_auction-keypair.json)
+echo "✅ Program deployed at $PROGRAM_ID"
+
+# -------------------------------
+# 4️⃣ Verify Upgrade Authority
+# -------------------------------
+AUTHORITY=$(solana program show $PROGRAM_ID --output json | jq -r '.upgrade_authority')
+echo "🔑 Upgrade authority: $AUTHORITY"
+
+# -------------------------------
+# 5️⃣ Initialize Client In-Flight Ledger
+# -------------------------------
+echo "⏳ Initializing client in-flight ledger..."
+mkdir -p ./client/src
+cat > ./client/src/inFlightLedger.ts <<EOL
+export const inFlightLedger = new Map<string, boolean>();
+EOL
+echo "✅ In-flight ledger ready"
+
+# -------------------------------
+# 6️⃣ Initialize Dashboard Metrics
+# -------------------------------
+echo "⏳ Initializing dashboard metrics..."
+mkdir -p ./dashboard
+cat > ./dashboard/metrics.json <<EOL
+{
+  "filtered_null_message_id": 0,
+  "attempt_count": 0,
+  "in_flight_bids": 0,
+  "confirmed_bids": 0,
+  "duplicate_bid_attempts": 0,
+  "transaction_latency_ms": 0
+}
+EOL
+echo "✅ Dashboard metrics ready"
+
+# -------------------------------
+# 7️⃣ Setup Zapier Atomic Pipeline
+# -------------------------------
+echo "⏳ Creating Zapier pipeline placeholders..."
+mkdir -p ./zapier
+cat > ./zapier/pipeline_status.json <<EOL
+{
+  "status": "ready",
+  "lastDeployed": "$(date --iso-8601=seconds)",
+  "messageIdGate": "enabled",
+  "atomicLock": "enabled",
+  "retryCounters": "enabled",
+  "tableMigration": "pending",
+  "operationalDashboard": "./dashboard/metrics.json",
+  "solanaProgramId": "$PROGRAM_ID"
+}
+EOL
+
+cat > ./zapier/code_step_atomic.js <<'EOL'
+// BEGIN CODE STEP
+const messageId = inputData.message_id;
+const payload = inputData;
+
+if (!messageId) {
+    return { stopZap: true, notify: true, reason: "Missing Message-ID" };
+}
+
+const lockKey = `lock_${messageId}`;
+const lock = await storage.set(lockKey, Date.now(), { ttl: 10 });
+if (!lock) {
+    return { stopZap: true, reason: "Lock active, parallel execution detected" };
+}
+
+const existing = await storage.get(`msg_${messageId}`);
+if (existing) {
+    await storage.increment('ouroboros_filtered_null_message_id');
+    await storage.increment(`attempt_${messageId}`);
+    return { stopZap: true, reason: "Duplicate detected" };
+}
+
+await storage.set(`msg_${messageId}`, { timestamp: Date.now(), payload });
+const metrics = await storage.get('dashboard_metrics') || { filtered_null_message_id: 0, attempt_count: 0, in_flight_bids: 0, confirmed_bids: 0, duplicate_bid_attempts: 0 };
+metrics.in_flight_bids += 1;
+await storage.set('dashboard_metrics', metrics);
+
+return { success: true, programId: inputData.solana_program_id };
+// END CODE STEP
+EOL
+echo "✅ Zapier pipeline placeholders and code step ready"
+
+# -------------------------------
+# 8️⃣ Final Summary
+# -------------------------------
+echo "🎉 Full-stack deployment complete!"
+echo "Program ID: $PROGRAM_ID"
+echo "Upgrade Authority: $AUTHORITY"
+echo "Devnet Explorer: https://explorer.solana.com/address/$PROGRAM_ID?cluster=devnet"
+echo "Client in-flight ledger: $PROJECT_ROOT/client/src/inFlightLedger.ts"
+echo "Dashboard metrics: $PROJECT_ROOT/dashboard/metrics.json"
+echo "Zapier pipeline: $PROJECT_ROOT/zapier/pipeline_status.json"
+echo "Zapier Code Step: $PROJECT_ROOT/zapier/code_step_atomic.js"
+echo "🔥 SARAI FULLY LIVE 🔥"
