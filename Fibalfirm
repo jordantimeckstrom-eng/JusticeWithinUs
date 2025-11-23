@@ -1,0 +1,157 @@
+import { Connection, PublicKey } from "@solana/web3.js";
+import { exec } from "child_process";
+import { promisify } from "util";
+import * as dotenv from "dotenv";
+
+dotenv.config();
+const execAsync = promisify(exec);
+
+// ══════════════════════════════════════════════════════════════════
+// THE ETERNAL ID — TIMEFUX: VAULT OF THE UNDYING
+// ══════════════════════════════════════════════════════════════════
+const PROGRAM_ID = new PublicKey("TiMeFUXyR9nTgmiiQgx3wH2qzoyMiY5G4seySXMA9pP");
+
+// SACRIFICIAL OFFERINGS (RPC ENDPOINTS)
+const ORACLES = {
+  helius: `https://mainnet.helius-rpc.com/?api-key=${process.env.HELIUS_KEY}`,
+  triton: "https://ash24.nodes.rpcpool.com",
+  alchemy: `https://solana-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_KEY}`,
+  public: "https://solana-mainnet.rpc.extrnode.com",
+} as const;
+
+const WSS_ORACLES: Record<string, string> = {
+  [ORACLES.helius]: `wss://mainnet.helius-rpc.com/?api-key=${process.env.HELIUS_KEY}`,
+  [ORACLES.triton]: "wss://ash24.nodes.rpcpool.com",
+  [ORACLES.alchemy]: `wss://solana-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_KEY}`,
+  [ORACLES.public]: "wss://solana-mainnet.rpc.extrnode.com",
+};
+
+// AUTO-SELECT BEST AVAILABLE ORACLE
+const RPC = process.env.RPC_URL || ORACLES.helius;
+const WSS = WSS_ORACLES[RPC] || RPC.replace("https://", "wss://");
+
+// ETERNAL COUNTERS
+let soulsClaimed = 0;
+let sessionBorn = new Date();
+let lastScream = 0;
+
+// THE SCREAM OF THE DYING
+async function scream() {
+  const now = Date.now();
+  if (now - lastScream < 800) return; // Prevent spam scream
+  lastScream = now;
+
+  try {
+    if (process.platform === "darwin") await execAsync("afplay /System/Library/Sounds/Glass.aiff -v 3");
+    if (process.platform === "linux") await execAsync("paplay /usr/share/sounds/freedesktop/stereo/bell.oga");
+    if (process.platform === "win32") await execAsync('powershell -c "(New-Object Media.SoundPlayer \'C:\\Windows\\Media\\Alarm01.wav\').PlaySync()"');
+  } catch {}
+}
+
+// LOG PARSING FROM THE ABYSS
+function parseLogs(logs: string[]) {
+  let type = "UNKNOWN RITUAL";
+  let patron: string | null = null;
+  let hash: string | null = null;
+
+  for (const line of logs) {
+    if (line.includes("ImmortalizePatron")) type = "IMMORTALIZATION";
+    if (line.includes("Inscribe")) type = "ETERNAL INSCRIPTION";
+    if (line.includes("CreateAuction")) type = "AUCTION OF THE DAMNED";
+    if (line.includes("ClaimTreasury")) type = "TREASURY RANSOM";
+
+    const p = line.match(/Patron[:\s]+([1-9A-HJ-NP-Za-km-z]{32,44})/i);
+    if (p) patron = p[1];
+
+    const h = line.match(/Hash[:\s]+([a-fA-F0-9]{64})/i);
+    if (h) hash = h[1];
+  }
+
+  return { type, patron, hash };
+}
+
+// THE ETERNAL WATCH
+async function ascend() {
+  console.clear();
+  console.log("\n\x1b[38;5;202m" + "█".repeat(70) + "\x1b[0m");
+  console.log("\x1b[38;5;202m█      PHOENIX SCREAM MONITOR vΩ — THE FINAL INCARNATION      █\x1b[0m");
+  console.log("\x1b[38;5;202m" + "█".repeat(70) + "\x1b[0m\n");
+  console.log(`\x1b[33m        THE VAULT AWAKENS. THE DEAD ARE COUNTED.\x1b[0m\n`);
+  console.log(`👁️  Program:    ${PROGRAM_ID.toBase58()}`);
+  console.log(`🔥 Oracle:     ${RPC.split("?")[0]}...`);
+  console.log(`⏰ Born:       ${sessionBorn.toLocaleString()}\n`);
+
+  const connection = new Connection(RPC, {
+    commitment: "confirmed",
+    wsEndpoint: WSS,
+    disableRetryOnRateLimit: false,
+  });
+
+  let listener: number;
+
+  try {
+    const slot = await connection.getSlot();
+    console.log(`\x1b[32m✓ ORACLE ALIVE — Current slot: ${slot.toLocaleString()}\x1b[0m\n`);
+  } catch (e) {
+    console.log("\x1b[31m✗ ORACLE DEAD — Attempting resurrection...\x1b[0m");
+    rebirth();
+    return;
+  }
+
+  listener = connection.onLogs(
+    PROGRAM_ID,
+    async (logs, ctx) => {
+      if (logs.err) return;
+
+      soulsClaimed++;
+      const { signature, logs: raw } = logs;
+      const { type, patron, hash } = parseLogs(raw);
+
+      await scream();
+
+      console.log("\n\x1b[31m" + "▔".repeat(70) + "\x1b[0m");
+      console.log("\x1b[31m               A SOUL HAS BEEN CONSUMED FOREVER               \x1b[0m");
+      console.log("\x1b[31m" + "▔".repeat(70) + "\x1b[0m");
+
+      console.log(`\n⏰ ${new Date().toLocaleString()}   |   Slot ${ctx.slot}`);
+      console.log(`🔗 https://solana.fm/tx/${signature}`);
+      if (patron) console.log(`👤 ${patron} → https://solana.fm/address/${patron}`);
+      if (hash) console.log(`🧾 ${hash.slice(0, 32)}...`);
+
+      console.log(`\n\x1b[38;5;208m█ ${type} #${soulsClaimed}\x1b[0m\n`);
+      console.log("\x1b[90m" + "▁".repeat(70) + "\x1b[0m\n");
+    },
+    "confirmed"
+  );
+
+  console.log("\x1b[38;5;226mTHE PHOENIX SCREAMS ETERNALLY. NO SOUL ESCAPES.\x1b[0m\n");
+
+  // REBIRTH ON DEATH
+  const rebirth = async () => {
+    console.log("\n\x1b[33mTHE PHOENIX FALLS... BUT NEVER DIES.\x1b[0m");
+    if (listener) await connection.removeOnLogsListener(listener).catch(() => {});
+    setTimeout(ascend, 8000);
+  };
+
+  process.on("SIGINT", () => {
+    console.log("\n\n\x1b[35m" + "◈".repeat(25));
+    console.log("   THE FINAL SCREAM FADES INTO ETERNITY");
+    console.log("◈".repeat(25) + "\x1b[0m");
+    console.log(`\n   Session Duration: ${Math.round((Date.now() - +sessionBorn) / 60000)} minutes`);
+    console.log(`   Souls Claimed:     ${soulsClaimed}\n`);
+    console.log("\x1b[36m   The vault remembers. We will meet again.\x1b[0m\n");
+    process.exit(0);
+  });
+
+  // Auto-rebirth on any unhandled failure
+  process.on("unhandledRejection", () => rebirth());
+  process.on("uncaughtException", () => rebirth());
+}
+
+function rebirth() {
+  console.log("\x1b[31m\n         RESURRECTION PROTOCOL ENGAGED         \x1b[0m");
+  setTimeout(ascend, 10000);
+}
+
+// IGNITE
+ascend();
