@@ -29,3 +29,14 @@ scripts/merge_hydration_repo.sh \
 ## Notes
 
 In this execution environment, outbound access to GitHub returns `403` via the configured tunnel, so the fetch/merge step cannot complete here.
+
+## JUSCR metaverse merge command
+
+```bash
+scripts/merge_metaverse_into_juscr.sh \
+  https://github.com/<org>/JUSCR.git \
+  metaverse
+```
+
+This performs a targeted fetch of `metaverse` and merges it into your current checked-out branch using `--allow-unrelated-histories`.
+
