@@ -1,8 +1,17 @@
 # Merge repos helper
 
-This repository now includes a helper script to merge the upstream Hydration Node repository into the current branch with unrelated history support.
+This repository includes helper scripts to merge an upstream repository into the current branch with unrelated history support.
 
-## Command
+## Generic command
+
+```bash
+scripts/merge_external_repo.sh \
+  https://github.com/galacticcouncil/intergalactic-asset-metadata.git \
+  intergalactic \
+  master
+```
+
+## Hydration shortcut command
 
 ```bash
 scripts/merge_hydration_repo.sh \
@@ -11,11 +20,11 @@ scripts/merge_hydration_repo.sh \
   master
 ```
 
-## What it does
+## What the merge scripts do
 
-1. Adds (or updates) a Git remote named `hydration`.
-2. Fetches from that remote.
-3. Merges `hydration/master` with `--allow-unrelated-histories`.
+1. Add (or update) a Git remote.
+2. Fetch from that remote.
+3. Merge `<remote>/<branch>` with `--allow-unrelated-histories`.
 
 ## Notes
 
