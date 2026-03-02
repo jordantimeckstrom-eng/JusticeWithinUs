@@ -1,2 +1,5 @@
-https://github.com/npm/cli.git
-gh repo clone npm/cli
+# Update npm to the latest stable version
+npm install -g npm@latest
+
+# Verify
+npm --version
