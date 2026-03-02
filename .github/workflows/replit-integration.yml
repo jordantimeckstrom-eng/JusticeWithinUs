@@ -1,0 +1,16 @@
+name: Replit Integration Check
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+
+jobs:
+  verify-replit-app:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify external app is reachable
+        run: scripts/check_replit_integration.sh "https://juscr-fre-for-all.replit.app/"
