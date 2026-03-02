@@ -1,0 +1,101 @@
+services:
+
+  explorer:
+    build:
+      context: https://github.com/UniqueNetwork/unique-template.git#explorer
+      dockerfile: Dockerfile
+    platform: linux/amd64
+    restart: unless-stopped
+    depends_on:
+      - scan-api
+      - http-proxy
+    ports:
+      - 3002:3002
+    environment:
+      - NEXT_PUBLIC_REST_URL=http://localhost:3000
+      - NEXT_PUBLIC_INDEXER_URL=http://localhost:3001
+
+  scan-crawler:
+    image: uniquenetwork/substrate-proxy-scan-crawler:master
+    platform: linux/amd64
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - chain
+    environment:
+      - DB_URL=postgres://db_user:db_password@postgres:5432/scan_db
+      - CHAIN=ws://chain:9833
+
+  scan-api:
+    image: uniquenetwork/substrate-proxy-scan-api:master
+    platform: linux/amd64
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    ports:
+      - 3001:3001
+    environment:
+      - DB_URL=postgres://db_user:db_password@postgres:5432/scan_db
+      - PORT=3001
+      - OPENAPI_SERVER_URL=http://localhost:3001/
+      - OPENAPI_SERVER_DESCRIPTION="This server"
+      - OPENAPI_SERVER_PUBLIC_PATH=/
+
+  http-proxy:
+    image: uniquenetwork/substrate-proxy-http-proxy:master
+    platform: linux/amd64
+    restart: unless-stopped
+    depends_on:
+      - chain
+    ports:
+      - 3000:3000
+    environment:
+      - PORT=3000
+      - CHAIN=ws://chain:9833
+      - MIN_LOG_LEVEL=info
+      - EXTRINSIC_MORTAL_BLOCK_LENGTH=64
+      - OPENAPI_SERVER_URL=http://localhost:3000/
+      - OPENAPI_SERVER_DESCRIPTION="This server"
+      - OPENAPI_SERVER_PUBLIC_PATH=/
+
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: db_user
+      POSTGRES_PASSWORD: db_password
+      POSTGRES_DB: scan_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - scan-postgres:/var/lib/postgresql/data
+
+  chain:
+    image: uniquenetwork/unique-node-public:latest
+    platform: linux/amd64
+    restart: unless-stopped
+    command:  >
+      --dev
+      --idle-autoseal-interval 2000
+      --disable-autoseal-on-tx
+      --autoseal-finalization-delay 1
+      --state-pruning archive
+      --blocks-pruning archive
+      --base-path /unique/data
+      --port 30333
+      --rpc-port 9833
+      --no-prometheus
+      --no-mdns
+      --no-telemetry
+      --unsafe-rpc-external
+      --rpc-cors=all
+    ports:
+      - 9833:9833
+      - 40333:40333
+      - 30333:30333
+    volumes:
+      - chain-data:/chain/data
+
+volumes:
+  chain-data:
+  scan-postgres:
