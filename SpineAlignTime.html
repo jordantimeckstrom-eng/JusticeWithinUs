@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SpineAlignTime</title>
+  <link rel="manifest" href="SpineAlignTime/manifest.json" />
+  <meta name="theme-color" content="#0d1117" />
+  <style>
+    :root {
+      --bg:#0d1117; --panel:#161b22; --panel-soft:#1f2937; --line:#30363d;
+      --text:#e6edf3; --muted:#9da7b3; --good:#2ea043; --warn:#d29922;
+      --bad:#f85149; --accent:#58a6ff;
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--bg); color:var(--text); font-family: Inter, system-ui, sans-serif; }
+    .toolbar {
+      position: sticky; top: 0; z-index: 20; display:flex; flex-wrap:wrap; gap:.5rem;
+      align-items:center; padding:.75rem 1rem; border-bottom:1px solid var(--line); background:rgba(13,17,23,.96);
+    }
+    button {
+      background:var(--panel-soft); border:1px solid var(--line); color:var(--text);
+      border-radius:8px; padding:.45rem .7rem; cursor:pointer;
+    }
+    button:hover { border-color:var(--accent); }
+    .status { color:var(--muted); font-size:.9rem; margin-left:auto; }
+    .app { min-height: calc(100vh - 61px); display:grid; grid-template-columns: 1fr 1fr 1fr; }
+    section { border-right:1px solid var(--line); padding:1rem; overflow:auto; }
+    section:last-child { border-right:none; }
+    h2 { margin:.2rem 0 .8rem; font-size:1.05rem; }
+    .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:.8rem; margin-bottom:.8rem; }
+    .row { display:grid; grid-template-columns: 1fr auto; align-items:center; gap:.6rem; margin:.4rem 0; }
+    .row input[type='number'] { width:68px; background:#0b1220; border:1px solid var(--line); border-radius:8px; color:var(--text); padding:.3rem .4rem; }
+    .row input[type='range'] { width:100%; }
+    .muted { color:var(--muted); font-size:.87rem; }
+    .pill { display:inline-block; padding:.15rem .45rem; border-radius:999px; font-size:.8rem; border:1px solid var(--line); }
+    .good { color:var(--good); border-color:color-mix(in oklab, var(--good), transparent 70%); }
+    .bad { color:var(--bad); border-color:color-mix(in oklab, var(--bad), transparent 70%); }
+    .plan-day { border-left:3px solid var(--accent); padding-left:.5rem; margin:.55rem 0; }
+    @media (max-width: 980px) {
+      .app { grid-template-columns: 1fr; }
+      section { border-right:none; border-bottom:1px solid var(--line); }
+      section:last-child { border-bottom:none; }
+      .status { width:100%; margin-left:0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <strong>SpineAlignTime</strong>
+    <button id="syncBtn">🔄 Sync from GitHub</button>
+    <button id="sampleBtn">📦 Load Sample History</button>
+    <button id="exportBtn">⬇️ Export</button>
+    <span class="status" id="status">Loading config…</span>
+  </div>
+
+  <div class="app">
+    <section>
+      <h2>Left · 7-Day History + Analysis</h2>
+      <div id="history"></div>
+      <div class="card">
+        <h3>Data intelligence</h3>
+        <p id="avg"></p>
+        <p id="strong"></p>
+        <p id="weak"></p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Middle · Present Pillars</h2>
+      <div id="pillars"></div>
+      <div class="card">
+        <h3>Weighted impact</h3>
+        <p id="weighted"></p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Right · 7-Day Alignment Plan</h2>
+      <div id="plan" class="card"></div>
+    </section>
+  </div>
+
+  <script>
+    const REPO_USER = 'YOUR_GITHUB_USERNAME';
+    const CONFIG_URL = `https://raw.githubusercontent.com/${REPO_USER}/JUSCR/main/SpineAlignTime/config.json`;
+    const STORAGE_KEY = 'spine-align-time-v1';
+
+    let GOALS = [];
+    let PILLARS = [];
+
+    const defaultGoals = [
+      'Cervical alignment','Thoracic openness','Lumbar stability','Hip symmetry',
+      'Shoulder release','Breath depth','Posture hold'
+    ];
+    const defaultPillars = [
+      { key:'sleep', label:'Sleep 7h+', weight:2 },
+      { key:'hydration', label:'Hydration', weight:1.5 },
+      { key:'mobility', label:'Mobility', weight:2 },
+      { key:'strength', label:'Strength', weight:1.5 },
+      { key:'breath', label:'Breathwork', weight:1 },
+      { key:'screen_hygiene', label:'Screen Hygiene', weight:1 },
+      { key:'mindset', label:'Mindset', weight:1 }
+    ];
+
+    const statusEl = document.getElementById('status');
+    const state = loadState();
+
+    function todayISO(offset = 0) {
+      const d = new Date();
+      d.setDate(d.getDate() + offset);
+      return d.toISOString().slice(0, 10);
+    }
+
+    function loadState() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        if (parsed && Array.isArray(parsed.history) && parsed.pillars) return parsed;
+      } catch {}
+      const history = Array.from({ length: 7 }, (_, i) => ({
+        date: todayISO(i - 3),
+        scores: {}
+      }));
+      return { history, pillars: {} };
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    async function loadConfig() {
+      try {
+        const res = await fetch(CONFIG_URL, { cache:'no-store' });
+        if (!res.ok) throw new Error('Config fetch failed');
+        const config = await res.json();
+        GOALS = config.goals?.length ? config.goals : defaultGoals;
+        PILLARS = config.pillars?.length ? config.pillars : defaultPillars;
+        statusEl.textContent = '✅ Live config loaded from GitHub';
+      } catch (err) {
+        GOALS = defaultGoals;
+        PILLARS = defaultPillars;
+        statusEl.textContent = '⚠️ Fallback config in use (set REPO_USER and push config.json)';
+      }
+      normalizeState();
+      renderEverything();
+    }
+
+    function normalizeState() {
+      state.history.forEach(day => {
+        GOALS.forEach(goal => {
+          if (typeof day.scores[goal] !== 'number') day.scores[goal] = 5;
+        });
+      });
+      PILLARS.forEach(p => {
+        if (typeof state.pillars[p.key] !== 'number') state.pillars[p.key] = 5;
+      });
+      saveState();
+    }
+
+    function renderEverything() {
+      renderHistory();
+      renderPillars();
+      renderAnalysis();
+      renderPlan();
+    }
+
+    function renderHistory() {
+      const container = document.getElementById('history');
+      container.innerHTML = '';
+      state.history.forEach((day, dayIndex) => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        const rows = GOALS.map(goal => `
+          <label class="row">
+            <span>${goal}</span>
+            <input type="number" min="0" max="10" value="${day.scores[goal]}" data-day="${dayIndex}" data-goal="${goal}">
+          </label>
+        `).join('');
+        card.innerHTML = `<h3>${day.date}</h3>${rows}`;
+        container.appendChild(card);
+      });
+
+      container.querySelectorAll('input[type="number"]').forEach(input => {
+        input.addEventListener('input', (e) => {
+          const day = Number(e.target.dataset.day);
+          const goal = e.target.dataset.goal;
+          const v = Math.max(0, Math.min(10, Number(e.target.value) || 0));
+          state.history[day].scores[goal] = v;
+          saveState();
+          renderAnalysis();
+          renderPlan();
+        });
+      });
+    }
+
+    function renderPillars() {
+      const container = document.getElementById('pillars');
+      container.innerHTML = '';
+      PILLARS.forEach(p => {
+        const val = state.pillars[p.key] || 5;
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <div class="row"><strong>${p.label}</strong><span class="muted">w=${p.weight}</span></div>
+          <input type="range" min="0" max="10" step="1" value="${val}" data-pillar="${p.key}">
+          <div class="muted">Current: <span>${val}</span>/10</div>
+        `;
+        container.appendChild(card);
+      });
+
+      container.querySelectorAll('input[type="range"]').forEach(slider => {
+        slider.addEventListener('input', (e) => {
+          const key = e.target.dataset.pillar;
+          const v = Number(e.target.value);
+          state.pillars[key] = v;
+          e.target.nextElementSibling.querySelector('span').textContent = v;
+          saveState();
+          renderAnalysis();
+          renderPlan();
+        });
+      });
+    }
+
+    function goalAverages() {
+      const sums = Object.fromEntries(GOALS.map(g => [g, 0]));
+      state.history.forEach(day => GOALS.forEach(g => sums[g] += Number(day.scores[g] || 0)));
+      return GOALS.map(g => ({ goal: g, avg: sums[g] / state.history.length }));
+    }
+
+    function pillarWeightedScore() {
+      const totalWeight = PILLARS.reduce((acc, p) => acc + p.weight, 0);
+      const weighted = PILLARS.reduce((acc, p) => acc + (state.pillars[p.key] || 0) * p.weight, 0);
+      return totalWeight ? weighted / totalWeight : 0;
+    }
+
+    function renderAnalysis() {
+      const avgs = goalAverages().sort((a,b) => b.avg - a.avg);
+      const strongest = avgs[0];
+      const weakest = avgs[avgs.length - 1];
+      const globalAvg = avgs.reduce((a,b) => a + b.avg, 0) / avgs.length;
+      const weighted = pillarWeightedScore();
+
+      document.getElementById('avg').innerHTML = `7-goal average: <span class="pill">${globalAvg.toFixed(2)}/10</span>`;
+      document.getElementById('strong').innerHTML = `Strongest: <span class="pill good">${strongest.goal} (${strongest.avg.toFixed(2)})</span>`;
+      document.getElementById('weak').innerHTML = `Weakest: <span class="pill bad">${weakest.goal} (${weakest.avg.toFixed(2)})</span>`;
+      document.getElementById('weighted').textContent = `Pillar-adjusted readiness: ${weighted.toFixed(2)}/10`;
+    }
+
+    function renderPlan() {
+      const avgs = goalAverages().sort((a,b) => a.avg - b.avg);
+      const weakGoals = avgs.slice(0, 2).map(x => x.goal);
+      const strongGoal = avgs[avgs.length - 1].goal;
+      const weighted = pillarWeightedScore();
+      const intensity = weighted >= 7 ? 'push progression' : weighted >= 5 ? 'steady rebuild' : 'recovery-led reset';
+
+      const plan = Array.from({ length: 7 }, (_, i) => {
+        const focus = weakGoals[i % weakGoals.length];
+        return `
+          <div class="plan-day">
+            <strong>Day ${i + 1}</strong> · ${intensity}<br>
+            Spine alignment priority: <em>${focus}</em>.<br>
+            Reality alignment anchor: support with ${strongGoal.toLowerCase()} carryover and one non-negotiable pillar habit.
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('plan').innerHTML = plan;
+    }
+
+    async function loadSampleHistory() {
+      try {
+        const res = await fetch('data/sample-history.json', { cache:'no-store' });
+        const sample = await res.json();
+        if (Array.isArray(sample)) {
+          state.history = sample;
+          normalizeState();
+          renderEverything();
+          statusEl.textContent = '✅ Sample history loaded';
+        }
+      } catch {
+        statusEl.textContent = '⚠️ Could not load sample history';
+      }
+    }
+
+    function exportData() {
+      const payload = {
+        exportedAt: new Date().toISOString(),
+        goals: GOALS,
+        pillars: PILLARS,
+        state
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type:'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'spine-align-time-export.json';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    document.getElementById('syncBtn').addEventListener('click', loadConfig);
+    document.getElementById('sampleBtn').addEventListener('click', loadSampleHistory);
+    document.getElementById('exportBtn').addEventListener('click', exportData);
+
+    window.addEventListener('load', () => {
+      loadConfig();
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('service-worker.js').catch(() => {});
+      }
+    });
+  </script>
+</body>
+</html>
