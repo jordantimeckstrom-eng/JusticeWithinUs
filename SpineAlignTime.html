@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+  <meta name="theme-color" content="#050505" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="manifest" href="manifest.json" />
+  <title>SpineAlignTime | Sovereign Edition</title>
+  <style>
+    :root {
+      --bg: #050505;
+      --panel: rgba(255, 255, 255, 0.03);
+      --text: #e6edf3;
+      --gold: #d4af37;
+      --good: #22c55e;
+      --warn: #eab308;
+      --bad: #ef4444;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(5, 5, 5, 0.92);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+      padding: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    h1 { margin: 0; font-size: 1rem; color: var(--gold); }
+    .status { font-size: 0.78rem; color: var(--muted); }
+    button {
+      border: 1px solid rgba(212, 175, 55, 0.5);
+      background: #111;
+      color: var(--gold);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    main {
+      display: grid;
+      gap: 12px;
+      padding: 12px;
+      grid-template-columns: repeat(3, minmax(220px, 1fr));
+    }
+    section {
+      background: var(--panel);
+      border: 1px solid rgba(212, 175, 55, 0.16);
+      border-radius: 12px;
+      padding: 12px;
+    }
+    h2 { margin: 0 0 10px; font-size: 0.92rem; color: var(--gold); }
+    .item {
+      padding: 8px;
+      margin-bottom: 8px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      font-size: 0.86rem;
+    }
+    .score-good { color: var(--good); }
+    .score-warn { color: var(--warn); }
+    .score-bad { color: var(--bad); }
+    .pillars { display: grid; gap: 8px; }
+    .small { color: var(--muted); font-size: 0.78rem; }
+    .tooltip { border-bottom: 1px dotted var(--muted); cursor: help; }
+    @media (max-width: 900px) {
+      main { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>SpineAlignTime · Sovereign Edition v1.3</h1>
+      <div class="status" id="sync-status">Initializing…</div>
+    </div>
+    <button id="sync-btn" type="button">Sync</button>
+  </header>
+
+  <main>
+    <section>
+      <h2>History (Last 7 Days)</h2>
+      <div id="history"></div>
+    </section>
+
+    <section>
+      <h2>Controller Plan (Today)</h2>
+      <div id="plan"></div>
+    </section>
+
+    <section>
+      <h2>Pillars + Forward View</h2>
+      <div id="pillars" class="pillars"></div>
+      <h2 style="margin-top:14px;">Future 7-Day Focus</h2>
+      <div id="future"></div>
+    </section>
+  </main>
+
+  <script>
+    const fallbackConfig = {
+      whatWorkedDatabase: {
+        posture: ["Chin tuck protocol x3 sets", "Thoracic extension before work blocks"],
+        mobility: ["10-minute hip opener sequence", "Ankles + hamstrings reset before lift"],
+        strength: ["RPE 6-7 tempo work gives stable compliance", "Shorter sessions increase streak consistency"]
+      },
+      pillars: [
+        { key: "posture", label: "Posture", weight: 0.4, target: 90, unit: "%", score: 72 },
+        { key: "mobility", label: "Mobility", weight: 0.3, target: 45, unit: "mins", score: 31 },
+        { key: "strength", label: "Strength", weight: 0.3, target: 4, unit: "sessions", score: 3 }
+      ],
+      history: [
+        { day: "Mon", score: 86, protocol: "Chin tuck + desk timer", metrics: "Pain 2/10, upright blocks 5" },
+        { day: "Tue", score: 68, protocol: "Skipped mid-day walk", metrics: "Pain 4/10, mobility only 10m" },
+        { day: "Wed", score: 73, protocol: "Thoracic opener + dead bug", metrics: "Pain 3/10, focus stable" },
+        { day: "Thu", score: 64, protocol: "Late training", metrics: "Pain 5/10, sleep 5.5h" },
+        { day: "Fri", score: 81, protocol: "Band activation + checklist", metrics: "Pain 2/10, sessions on time" },
+        { day: "Sat", score: 77, protocol: "Walk + mobility", metrics: "Pain 3/10, good adherence" },
+        { day: "Sun", score: 70, protocol: "Light reset only", metrics: "Pain 3/10, low volume" }
+      ]
+    };
+
+    async function loadConfig() {
+      try {
+        const res = await fetch('config.json', { cache: 'no-store' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+        setStatus('Synced live config.json');
+        return json;
+      } catch (e) {
+        setStatus(`Using local fallback (${e.message})`);
+        return fallbackConfig;
+      }
+    }
+
+    function setStatus(text) {
+      document.getElementById('sync-status').textContent = text;
+    }
+
+    function scoreClass(score) {
+      if (score >= 80) return 'score-good';
+      if (score >= 70) return 'score-warn';
+      return 'score-bad';
+    }
+
+    function buildPlan(config) {
+      const sorted = [...config.pillars].sort((a, b) => a.score - b.score);
+      const weakest = sorted[0];
+      const strongest = sorted[sorted.length - 1];
+
+      const gap = Math.max(0, weakest.target - weakest.score);
+      const intensity = gap > 25 ? 'High' : gap > 10 ? 'Medium' : 'Low';
+      const tips = (config.whatWorkedDatabase[weakest.key] || []).slice(0, 2);
+
+      return {
+        weakest,
+        strongest,
+        intensity,
+        tips,
+        realityPrompt: `If ${weakest.label} is priority-1, what 15-minute non-negotiable block happens before noon?`
+      };
+    }
+
+    function renderHistory(history) {
+      const host = document.getElementById('history');
+      host.innerHTML = history.map(d => `
+        <div class="item" title="Protocol: ${d.protocol} | Metrics: ${d.metrics}">
+          <div><strong>${d.day}</strong> · <span class="${scoreClass(d.score)}">${d.score}/100</span></div>
+          <div class="small"><span class="tooltip">${d.protocol}</span></div>
+        </div>
+      `).join('');
+    }
+
+    function renderPillars(pillars) {
+      const host = document.getElementById('pillars');
+      host.innerHTML = pillars.map(p => `
+        <div class="item">
+          <div><strong>${p.label}</strong> · <span class="${scoreClass(p.score)}">${p.score}</span></div>
+          <div class="small">Weight: ${Math.round(p.weight * 100)}% · Target: ${p.target}${p.unit}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderPlan(plan) {
+      const host = document.getElementById('plan');
+      host.innerHTML = `
+        <div class="item">
+          <div><strong>Weakest:</strong> ${plan.weakest.label} (${plan.weakest.score})</div>
+          <div><strong>Strongest:</strong> ${plan.strongest.label} (${plan.strongest.score})</div>
+          <div><strong>Intensity:</strong> ${plan.intensity}</div>
+        </div>
+        <div class="item"><strong>What Worked:</strong><br>${plan.tips.map(t => `• ${t}`).join('<br>')}</div>
+        <div class="item"><strong>Reality Prompt:</strong><br>${plan.realityPrompt}</div>
+      `;
+    }
+
+    function renderFuture(plan) {
+      const host = document.getElementById('future');
+      const week = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+      host.innerHTML = week.map((day, idx) => `
+        <div class="item">
+          <strong>${day}</strong>: ${plan.weakest.label} ${idx < 3 ? 'priority block' : 'maintenance block'} (${plan.intensity})
+        </div>`).join('');
+    }
+
+    async function refresh() {
+      const config = await loadConfig();
+      renderHistory(config.history);
+      renderPillars(config.pillars);
+      const plan = buildPlan(config);
+      renderPlan(plan);
+      renderFuture(plan);
+      setStatus(document.getElementById('sync-status').textContent + ` · ${new Date().toLocaleTimeString()}`);
+    }
+
+    document.getElementById('sync-btn').addEventListener('click', refresh);
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./service-worker.js').catch(err => {
+        console.warn('Service worker registration failed:', err);
+      });
+    }
+
+    refresh();
+  </script>
+</body>
+</html>
