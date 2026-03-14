@@ -1,0 +1,153 @@
+{
+  "meta": {
+    "appName": "SpineAlignTime",
+    "version": "1.2",
+    "lastUpdated": "2026-03-14",
+    "repoPath": "SpineAlignTime/config.json",
+    "description": "Live controller for 7-day spinal + reality alignment. All goals, pillars, and protocols live here."
+  },
+
+  "goals": [
+    {
+      "name": "Cervical alignment",
+      "category": "spine",
+      "description": "Forward head posture ≤ 2°",
+      "defaultProtocol": "Chin tuck + 10s hold × 5",
+      "successMetric": "daily check-in photo or angle"
+    },
+    {
+      "name": "Thoracic openness",
+      "category": "spine",
+      "description": "T1-T12 extension & rotation free",
+      "defaultProtocol": "Foam roll thoracic + cat-cow flow",
+      "successMetric": "can touch elbows behind head"
+    },
+    {
+      "name": "Lumbar stability",
+      "category": "spine",
+      "description": "No anterior pelvic tilt drift",
+      "defaultProtocol": "Dead bug 3×10 + 20s hollow hold",
+      "successMetric": "pain-free sitting > 45 min"
+    },
+    {
+      "name": "Hip symmetry",
+      "category": "spine",
+      "description": "Left/right ASIS level",
+      "defaultProtocol": "90/90 hip stretch + pigeon 60s/side",
+      "successMetric": "equal leg length feel"
+    },
+    {
+      "name": "Shoulder release",
+      "category": "spine",
+      "description": "Scapulae rest down & back",
+      "defaultProtocol": "Wall angels + doorway stretch",
+      "successMetric": "no forward shoulder roll"
+    },
+    {
+      "name": "Breath depth",
+      "category": "reality",
+      "description": "Diaphragmatic 360° expansion",
+      "defaultProtocol": "4-7-8 or box breathing 5 min",
+      "successMetric": "≥ 6 deep breaths/hour"
+    },
+    {
+      "name": "Posture hold",
+      "category": "reality",
+      "description": "Default state = stacked spine",
+      "defaultProtocol": "Hourly 10s wall stand + reality check",
+      "successMetric": "auto-correction without cue"
+    }
+  ],
+
+  "pillars": [
+    {
+      "key": "sleep",
+      "label": "Sleep 7h+",
+      "weight": 3,
+      "target": "7",
+      "unit": "hours",
+      "icon": "🌙"
+    },
+    {
+      "key": "hydration",
+      "label": "Water 3L",
+      "weight": 2,
+      "target": "3",
+      "unit": "L",
+      "icon": "💧"
+    },
+    {
+      "key": "movement",
+      "label": "Movement 30m",
+      "weight": 2,
+      "target": "30",
+      "unit": "min",
+      "icon": "🏃"
+    },
+    {
+      "key": "breathwork",
+      "label": "Breath 5m",
+      "weight": 3,
+      "target": "5",
+      "unit": "min",
+      "icon": "🧘"
+    },
+    {
+      "key": "spine_check",
+      "label": "Spine C1-C7 check",
+      "weight": 4,
+      "target": "1",
+      "unit": "session",
+      "icon": "🦴"
+    },
+    {
+      "key": "reality_check",
+      "label": "Reality check (no loops)",
+      "weight": 4,
+      "target": "1",
+      "unit": "session",
+      "icon": "🔄"
+    },
+    {
+      "key": "mind_clear",
+      "label": "Mind clear",
+      "weight": 2,
+      "target": "1",
+      "unit": "session",
+      "icon": "🧠"
+    }
+  ],
+
+  "planRules": {
+    "intensityLevels": {
+      "high": "High precision — stack 2 strongest goals daily",
+      "steady": "Steady rebuild — alternate strongest + weakest",
+      "recovery": "Recovery-first — focus weakest + pillars only"
+    },
+    "focusRotation": "Every even day emphasize weakest goal; odd day strongest",
+    "realityAnchor": "Every plan block must include one 'Reality check' prompt"
+  },
+
+  "whatWorkedDatabase": {
+    "Cervical alignment": ["Chin tuck + laser pointer", "Neck harness 3x/week"],
+    "Thoracic openness": ["Foam roll + prayer stretch", "Hanging from bar 30s"],
+    "Lumbar stability": ["Dead bug + bird dog superset", "90s plank variations"],
+    "Hip symmetry": ["90/90 + couch stretch", "Single-leg glute bridge"],
+    "Shoulder release": ["Doorway pec stretch", "Face pulls 3×12"],
+    "Breath depth": ["4-7-8 before bed", "Box breathing during drives"],
+    "Posture hold": ["Hourly phone alarm + wall stand", "Posture buddy accountability"]
+  },
+
+  "realityPrompts": [
+    "Did I react from old pattern or respond from new alignment today?",
+    "Where did I feel the 'loop' trying to pull me back?",
+    "What one micro-win proved the spine change is sticking?"
+  ],
+
+  "exportSettings": {
+    "includeHistory": true,
+    "includePillars": true,
+    "includePlan": true,
+    "filenamePrefix": "spine-align-snapshot"
+  }
+}
