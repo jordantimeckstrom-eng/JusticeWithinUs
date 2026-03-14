@@ -11,6 +11,16 @@ scripts/merge_external_repo.sh \
   master
 ```
 
+
+## Claude scientific skills release merge
+
+```bash
+scripts/merge_claude_scientific_skills.sh \
+  https://github.com/K-Dense-AI/claude-scientific-skills.git \
+  claude_scientific_skills \
+  v2.25.0
+```
+
 ## Hydration shortcut command
 
 ```bash
