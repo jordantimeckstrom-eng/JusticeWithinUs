@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SpineAlignTime • Ouroboros Triple-Entry Temple</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/antd/5.20.6/reset.min.css" />
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #0f172a 100%);
+        color: #e2e8f0;
+      }
+      .shell {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 24px;
+      }
+      .header {
+        border-radius: 12px;
+        padding: 20px;
+        border: 1px solid rgba(168, 85, 247, 0.4);
+        box-shadow: 0 0 40px rgba(168, 85, 247, 0.25);
+        margin-bottom: 20px;
+        background: rgba(15, 23, 42, 0.75);
+      }
+      .gradient-text {
+        background: linear-gradient(135deg, #60a5fa 0%, #a855f7 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .card {
+        background: rgba(15, 23, 42, 0.65);
+        border: 1px solid rgba(96, 165, 250, 0.3);
+        border-radius: 10px;
+        padding: 14px;
+        margin-bottom: 10px;
+      }
+      .triple-entry {
+        border-left: 4px solid #a855f7;
+      }
+      .mono {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 12px;
+      }
+      .ant-tabs-tab-btn,
+      .ant-typography,
+      .ant-statistic-title,
+      .ant-statistic-content,
+      .ant-descriptions-item-label,
+      .ant-descriptions-item-content {
+        color: #e2e8f0 !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/dayjs@1/dayjs.min.js"></script>
+    <script src="https://unpkg.com/antd@5/dist/antd.min.js"></script>
+
+    <script>
+      const { useMemo, useReducer, useEffect } = React;
+      const { Tabs, Card, Space, Button, Tag, Alert, Typography, Statistic, Row, Col, message } = antd;
+      const { Title, Paragraph, Text } = Typography;
+
+      const initialState = {
+        bids: [
+          {
+            id: "seed-1",
+            timestamp: new Date().toISOString(),
+            name: "First Monitor",
+            amount: 4.2,
+            channel: "Email",
+            ghostNote: "A whisper from the old world",
+            tripleEntryHash: "1a2b3c4d5e6f7g8h9i0j",
+            status: "Leading"
+          }
+        ],
+        patterns: [],
+        systemTemp: 0.85,
+        lastDawn: null,
+        solanaSpineAnchored: false,
+        socketState: "disconnected"
+      };
+
+      function ledgerReducer(state, action) {
+        switch (action.type) {
+          case "INGEST_BID":
+            return {
+              ...state,
+              bids: [
+                {
+                  ...action.payload,
+                  tripleEntryHash:
+                    action.payload.tripleEntryHash || `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`
+                },
+                ...state.bids
+              ]
+            };
+          case "DIGEST_GHOST":
+            return { ...state, patterns: [...state.patterns, action.payload] };
+          case "EVOLVE_SYSTEM":
+            return { ...state, systemTemp: action.payload.grokTemp || 0.92, lastDawn: new Date().toISOString() };
+          case "SOCKET_STATE":
+            return { ...state, socketState: action.payload };
+          case "ANCHOR_SOLANA":
+            return { ...state, solanaSpineAnchored: true };
+          default:
+            return state;
+        }
+      }
+
+      function App() {
+        const [state, dispatch] = useReducer(ledgerReducer, initialState);
+
+        useEffect(() => {
+          let socket;
+          try {
+            socket = new WebSocket("ws://localhost:5000/socket.io/?EIO=4&transport=websocket");
+            dispatch({ type: "SOCKET_STATE", payload: "connecting" });
+
+            socket.onopen = () => {
+              dispatch({ type: "SOCKET_STATE", payload: "connected" });
+              message.success("🌌 Connected to LedgerBridge — the world can now whisper");
+            };
+
+            socket.onmessage = (event) => {
+              let data;
+              try {
+                data = JSON.parse(event.data);
+              } catch {
+                return;
+              }
+
+              const bid = {
+                id: `ws-${Date.now()}`,
+                timestamp: new Date().toISOString(),
+                name: data.fromName || "Legacy Monitor",
+                amount: parseFloat(data.amount || 0),
+                channel: "Email",
+                ghostNote: data.body || "A whisper from the old monitors",
+                status: "Leading"
+              };
+
+              dispatch({ type: "INGEST_BID", payload: bid });
+              message.success(`🌌 New ceremony from email: ${bid.name}`);
+            };
+
+            socket.onclose = () => dispatch({ type: "SOCKET_STATE", payload: "disconnected" });
+            socket.onerror = () => dispatch({ type: "SOCKET_STATE", payload: "error" });
+          } catch {
+            dispatch({ type: "SOCKET_STATE", payload: "error" });
+          }
+
+          return () => {
+            if (socket) socket.close();
+          };
+        }, []);
+
+        const totalAmount = useMemo(() => state.bids.reduce((sum, bid) => sum + (Number(bid.amount) || 0), 0), [state.bids]);
+
+        const sentinelSpec =
+          'The "Living Breath" is the operational heart of the system. Zapier Email Parser → POST /api/ledgerbridge/email → WebSocket → React Ouroboros Heart.';
+
+        const frameworkSynthesis =
+          "Triple-Entry Ledger. Deduplication & Event Queue. Dawn/Dusk Scheduler. Global LedgerBridge integration. Solana spine anchor readiness.";
+
+        const frontiersSpec =
+          "1) Eternal Seal: On-chain finalization with @solana/web3.js. 2) Economic Sovereignty: Proof of Reserve. 3) Distributed Resilience: Redis-backed horizontal scaling.";
+
+        const tabItems = [
+          {
+            key: "auction",
+            label: "Auction",
+            children: React.createElement(
+              Space,
+              { direction: "vertical", style: { width: "100%" } },
+              React.createElement(Row, { gutter: 12 },
+                React.createElement(Col, { xs: 24, md: 8 }, React.createElement(Card, null, React.createElement(Statistic, { title: "Ceremonies", value: state.bids.length }))),
+                React.createElement(Col, { xs: 24, md: 8 }, React.createElement(Card, null, React.createElement(Statistic, { title: "Total Amount", precision: 2, value: totalAmount }))),
+                React.createElement(Col, { xs: 24, md: 8 }, React.createElement(Card, null, React.createElement(Statistic, { title: "System Temp", precision: 2, value: state.systemTemp })))
+              ),
+              ...state.bids.map((bid) =>
+                React.createElement(
+                  "div",
+                  { key: bid.id, className: "card triple-entry" },
+                  React.createElement(Space, { direction: "vertical", size: 4 },
+                    React.createElement(Text, { strong: true }, `${bid.name} — ${Number(bid.amount).toFixed(2)}`),
+                    React.createElement(Text, null, `Channel: ${bid.channel}`),
+                    React.createElement(Text, null, `Ghost Note: ${bid.ghostNote}`),
+                    React.createElement("span", { className: "mono" }, `tripleEntryHash: ${bid.tripleEntryHash}`),
+                    React.createElement(Tag, { color: "green" }, bid.status)
+                  )
+                )
+              )
+            )
+          },
+          {
+            key: "framework",
+            label: "Framework",
+            children: React.createElement(Card, null, React.createElement(Paragraph, null, frameworkSynthesis))
+          },
+          {
+            key: "sentinel",
+            label: "Sentinel",
+            children: React.createElement(
+              Space,
+              { direction: "vertical", style: { width: "100%" } },
+              React.createElement(Alert, {
+                type: state.socketState === "connected" ? "success" : "info",
+                showIcon: true,
+                message: `Sentinel socket state: ${state.socketState}`
+              }),
+              React.createElement(Paragraph, null, sentinelSpec),
+              React.createElement(Button, {
+                onClick: () => message.info("Sentinel is listening — send a test email to see the Living Breath in action")
+              }, "Test Sentinel Connection")
+            )
+          },
+          {
+            key: "frontiers",
+            label: "Frontiers",
+            children: React.createElement(Card, null, React.createElement(Paragraph, null, frontiersSpec))
+          }
+        ];
+
+        return React.createElement(
+          "div",
+          { className: "shell" },
+          React.createElement(
+            "div",
+            { className: "header" },
+            React.createElement(Title, { level: 2, className: "gradient-text" }, "SpineAlignTime • Ouroboros Triple-Entry Temple"),
+            React.createElement(Paragraph, null, "The temple is self-documenting, self-testing, and listening to the world.")
+          ),
+          React.createElement(Tabs, { items: tabItems, defaultActiveKey: "auction" })
+        );
+      }
+
+      ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
+    </script>
+  </body>
+</html>
