@@ -1,0 +1,38 @@
+{
+  "meta": {
+    "appName": "SpineAlignTime",
+    "version": "1.4",
+    "lastUpdated": "2026-03-17",
+    "description": "Spine + Reality + Human Network + JUSCR FreeForAll Soul Math Engine"
+  },
+  "goals": [
+    {
+      "name": "Personhood Sovereignty",
+      "category": "reality",
+      "description": "Private high-entropy nullifier via Holonym VOPRF",
+      "defaultProtocol": "Bind low-entropy data → threshold key",
+      "successMetric": "ZK-proof without data leaving device"
+    }
+  ],
+  "pillars": [
+    {
+      "key": "zk_anchor",
+      "label": "ZK Personhood Anchor",
+      "weight": 5,
+      "target": "1",
+      "unit": "session",
+      "icon": "🔑"
+    },
+    {
+      "key": "soul_friction",
+      "label": "Soul Math Friction",
+      "weight": 5,
+      "target": "1",
+      "unit": "session",
+      "icon": "🔥"
+    }
+  ],
+  "realityPrompts": [
+    "Did my Phoenix Seal rise above friction today?"
+  ]
+}
