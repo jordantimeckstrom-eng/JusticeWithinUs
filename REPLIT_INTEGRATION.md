@@ -2,7 +2,7 @@
 
 This repository now includes a GitHub Actions workflow that validates connectivity to:
 
-- `https://juscr-fre-for-all.replit.app/`
+- `https://replit.com/@eckstromj1123/JUSCR-FreForAll?s=app`
 
 ## What was added
 

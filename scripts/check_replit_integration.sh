@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-TARGET_URL="${1:-https://juscr-fre-for-all.replit.app/}"
+TARGET_URL="${1:-https://replit.com/@eckstromj1123/JUSCR-FreForAll?s=app}"
 
 printf 'Checking integration endpoint: %s\n' "$TARGET_URL"
 
-http_code="$(curl -sS -L -o /tmp/replit_integration_body.txt -w '%{http_code}' "$TARGET_URL")"
+http_code="$(curl -sS -L --retry 2 --retry-delay 2 \
+  -A 'JusticeWithinUs-Integration-Check/1.0' \
+  -o /tmp/replit_integration_body.txt -w '%{http_code}' "$TARGET_URL")"
 
 if [[ "$http_code" -lt 200 || "$http_code" -ge 400 ]]; then
   echo "Endpoint check failed with HTTP status $http_code"
