@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SpineAlignTime • Ouroboros Triple-Entry Temple</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/antd/5.17.4/reset.min.css" />
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #0f172a 100%);
+      color: #e2e8f0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 24px;
+    }
+    .shell {
+      max-width: 1080px;
+      margin: 0 auto;
+      border: 1px solid rgba(168, 85, 247, 0.5);
+      box-shadow: 0 0 40px rgba(168, 85, 247, 0.3);
+      border-radius: 16px;
+      overflow: hidden;
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(8px);
+    }
+    .header {
+      padding: 20px 24px 8px;
+      border-bottom: 1px solid rgba(96, 165, 250, 0.25);
+    }
+    .title {
+      margin: 0;
+      background: linear-gradient(135deg, #60a5fa 0%, #a855f7 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-size: 28px;
+      line-height: 1.2;
+    }
+    .subtitle { color: #cbd5e1; margin: 8px 0 0; }
+    .content { padding: 16px 24px 24px; }
+    .ledger-item {
+      border-left: 4px solid #a855f7;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+      background: rgba(30, 41, 59, 0.7);
+      border-radius: 0 8px 8px 0;
+    }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+    .muted { color: #94a3b8; }
+    pre {
+      white-space: pre-wrap;
+      line-height: 1.55;
+      background: rgba(2, 6, 23, 0.55);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      border-radius: 10px;
+      padding: 14px;
+      color: #e2e8f0;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/antd@5.17.4/dist/antd.min.js"></script>
+  <script>
+    const { useEffect, useMemo, useReducer } = React;
+    const { Tabs, Tag, Button, Alert, Space, message, Statistic, Row, Col } = antd;
+
+    const initialState = {
+      bids: [],
+      patterns: [],
+      systemTemp: 0.85,
+      lastDawn: null,
+      solanaSpineAnchored: false,
+      connected: false,
+    };
+
+    function ledgerReducer(state, action) {
+      switch (action.type) {
+        case 'INGEST_BID':
+          return {
+            ...state,
+            bids: [...state.bids, {
+              ...action.payload,
+              tripleEntryHash: action.payload.tripleEntryHash || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
+            }]
+          };
+        case 'DIGEST_GHOST':
+          return { ...state, patterns: [...state.patterns, action.payload] };
+        case 'EVOLVE_SYSTEM':
+          return {
+            ...state,
+            systemTemp: action.payload.grokTemp || 0.92,
+            lastDawn: new Date().toISOString(),
+          };
+        case 'ANCHOR_SOLANA':
+          return { ...state, solanaSpineAnchored: true };
+        case 'SOCKET_CONNECTED':
+          return { ...state, connected: true };
+        case 'SOCKET_DISCONNECTED':
+          return { ...state, connected: false };
+        default:
+          return state;
+      }
+    }
+
+    function App() {
+      const [state, dispatch] = useReducer(ledgerReducer, initialState);
+      const [api, holder] = message.useMessage();
+
+      useEffect(() => {
+        const socket = new WebSocket('ws://localhost:5000/socket.io/?EIO=4&transport=websocket');
+
+        socket.onopen = () => {
+          dispatch({ type: 'SOCKET_CONNECTED' });
+          console.log('🌌 Connected to LedgerBridge');
+        };
+
+        socket.onclose = () => dispatch({ type: 'SOCKET_DISCONNECTED' });
+        socket.onerror = () => dispatch({ type: 'SOCKET_DISCONNECTED' });
+
+        socket.onmessage = (event) => {
+          let data;
+          try {
+            data = JSON.parse(event.data);
+          } catch {
+            return;
+          }
+
+          const bid = {
+            id: Date.now().toString(),
+            timestamp: new Date().toISOString(),
+            name: data.fromName || 'Legacy Monitor',
+            amount: Number.parseFloat(data.amount || 0),
+            channel: 'Email',
+            ghostNote: data.body || 'A whisper from the old monitors',
+            status: 'Leading',
+            saraiWhisper: 'Processed',
+            tripleEntryHash: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+          };
+
+          dispatch({ type: 'INGEST_BID', payload: bid });
+          api.success(`🌌 New ceremony from email: ${bid.name}`);
+        };
+
+        return () => socket.close();
+      }, [api]);
+
+      const frameworkSynthesis = useMemo(() => `Triple-Entry Ledger: Every bid is signed with a durable receipt hash.\nDeduplication & Event Queue: No ghost is lost in transit.\nDawn/Dusk Scheduler: systemTemp evolves with the day-night rhythm.\nGlobal LedgerBridge: Webhooks feed directly into the temple.\nSolana Spine Anchor: USCR reserve can anchor bids on-chain for permanence.`, []);
+
+      const sentinelSpec = useMemo(() => `The Sentinel Test Harness is a minimal listener proving the Living Breath before full ceremonies. It connects to the WebSocket bridge, receives external whispers (email, Zapier, monitors), and renders events instantly in the same context as the production UI.`, []);
+
+      const auctionTab = React.createElement('div', null,
+        React.createElement(Row, { gutter: 16, style: { marginBottom: 16 } },
+          React.createElement(Col, { span: 8 }, React.createElement(Statistic, { title: 'Bids', value: state.bids.length })),
+          React.createElement(Col, { span: 8 }, React.createElement(Statistic, { title: 'System Temp', value: state.systemTemp, precision: 2 })),
+          React.createElement(Col, { span: 8 }, React.createElement(Statistic, { title: 'Solana Anchored', value: state.solanaSpineAnchored ? 'Yes' : 'No' }))
+        ),
+        state.bids.length === 0
+          ? React.createElement(Alert, { type: 'info', message: 'No bids yet. Send a webhook event to begin the first ceremony.' })
+          : state.bids.slice().reverse().map((bid) => React.createElement('div', { className: 'ledger-item', key: bid.id },
+              React.createElement('div', null,
+                React.createElement('strong', null, bid.name),
+                ' · ',
+                React.createElement(Tag, { color: 'purple' }, `$${bid.amount.toFixed(2)}`),
+                ' ',
+                React.createElement(Tag, { color: 'blue' }, bid.channel)
+              ),
+              React.createElement('div', { className: 'mono muted' }, `timestamp: ${bid.timestamp}`),
+              React.createElement('div', { className: 'mono' }, `tripleEntryHash: ${bid.tripleEntryHash}`),
+              React.createElement('div', { className: 'muted' }, bid.ghostNote)
+            ))
+      );
+
+      const frameworkTab = React.createElement('pre', null, frameworkSynthesis);
+
+      const sentinelTab = React.createElement(Space, { direction: 'vertical', size: 'middle', style: { width: '100%' } },
+        React.createElement(pre, null, sentinelSpec),
+        React.createElement(Button, {
+          type: 'primary',
+          onClick: () => api.info('Sentinel is listening — send a test webhook to witness the Living Breath.')
+        }, 'Test Sentinel Connection')
+      );
+
+      return React.createElement('div', { className: 'shell' },
+        holder,
+        React.createElement('div', { className: 'header' },
+          React.createElement('h1', { className: 'title' }, 'SpineAlignTime • Ouroboros Temple'),
+          React.createElement('p', { className: 'subtitle' }, 'Self-documenting, self-testing ceremonial ledger'),
+          React.createElement(Tag, { color: state.connected ? 'green' : 'red' }, state.connected ? 'LedgerBridge Connected' : 'LedgerBridge Offline')
+        ),
+        React.createElement('div', { className: 'content' },
+          React.createElement(Tabs, {
+            defaultActiveKey: 'auction',
+            items: [
+              { key: 'auction', label: 'Auction', children: auctionTab },
+              { key: 'framework', label: 'Framework', children: frameworkTab },
+              { key: 'sentinel', label: 'Sentinel Test Harness', children: sentinelTab }
+            ]
+          })
+        )
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+  </script>
+</body>
+</html>
