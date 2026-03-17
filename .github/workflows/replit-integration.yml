@@ -13,4 +13,4 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Verify external app is reachable
-        run: scripts/check_replit_integration.sh "https://juscr-fre-for-all.replit.app/"
+        run: scripts/check_replit_integration.sh "https://replit.com/@eckstromj1123/JUSCR-FreForAll?s=app"
