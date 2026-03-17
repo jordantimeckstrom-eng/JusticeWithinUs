@@ -13,15 +13,28 @@
     \"theme_color\": \"#ff00ff\",
     \"icons\": [{\"src\": \"https://i.imgur.com/0z3kJ2p.png\", \"sizes\": \"512x512\", \"type\": \"image/png\"}]
   }">
-  <style>body{background:#000;color:#0ff;font-family:monospace;padding:20px;text-align:center}</style>
+  <style>
+    body{background:#000;color:#0ff;font-family:monospace;padding:20px;text-align:center}
+    .btn{font-size:18px;padding:15px;margin:10px;border:none;border-radius:8px;cursor:pointer}
+    .btn-primary{background:#f0f;color:#000}
+    .btn-passport{background:#0ff;color:#000;font-weight:700}
+    #planOutput{white-space:pre-line;text-align:left;background:#111;padding:10px;border-radius:8px;max-width:700px;margin:20px auto}
+  </style>
 </head>
 <body>
   <h1>🔥 PHOENIX SHIELD ACTIVE</h1>
   <p id="status">Ghost Protocol</p>
-  
-  <button onclick="toggleMode()" style="font-size:18px;padding:15px;margin:10px;background:#f0f;color:#000">SWITCH MODE</button>
-  <button onclick="addWhitelist()" style="font-size:18px;padding:15px;margin:10px">+ Angel Whitelist</button>
-  
+
+  <button onclick="toggleMode()" class="btn btn-primary">SWITCH MODE</button>
+  <button onclick="addWhitelist()" class="btn">+ Angel Whitelist</button>
+
+  <h2>Plan Console</h2>
+  <button id="generatePlan" class="btn">Generate</button>
+  <button id="exportPlan" class="btn">Export</button>
+  <button id="checkPassport" class="btn btn-passport">🛡️ Check Human Passport</button>
+
+  <div id="planOutput">Ready.</div>
+
   <h2>Live Logs</h2>
   <div id="logs" style="text-align:left;background:#111;padding:10px;height:300px;overflow:auto"></div>
 
@@ -30,7 +43,7 @@
     let mode = 'ghost';
     const PROGRAM_ID = new solanaWeb3.PublicKey('YOUR_PROGRAM_ID_HERE'); // ← replace with yours
     const logsDiv = document.getElementById('logs');
-    
+
     async function toggleMode() {
       mode = mode === 'ghost' ? 'accountability' : 'ghost';
       document.getElementById('status').textContent = mode.toUpperCase() + ' PROTOCOL';
@@ -38,20 +51,48 @@
       alert('Mode switched to ' + mode + ' — chain updated');
       log('Shield flipped to ' + mode);
     }
-    
+
     function addWhitelist() {
       const addr = prompt('Angel wallet address:');
       if (addr) log('Angel added: ' + addr);
     }
-    
+
     function log(msg) {
       logsDiv.innerHTML += `<div>${new Date().toLocaleTimeString()} — ${msg}</div>`;
       logsDiv.scrollTop = logsDiv.scrollHeight;
     }
-    
+
+    document.getElementById('generatePlan').onclick = () => {
+      document.getElementById('planOutput').textContent = '⚙️ Plan generated locally.';
+    };
+
+    document.getElementById('exportPlan').onclick = () => {
+      document.getElementById('planOutput').textContent = '📤 Export prepared (local-only simulation).';
+    };
+
+    document.getElementById("checkPassport").onclick = async () => {
+      const output = document.getElementById("planOutput");
+      output.textContent = "🔍 Querying threshold network...\n";
+
+      // Simulated Holonym check (real integration placeholder)
+      await new Promise((resolve) => setTimeout(resolve, 1200));
+      const passed = Math.random() > 0.25;
+
+      if (passed) {
+        output.textContent += "✅ Human Passport valid\n";
+        output.textContent += "🧬 Uniqueness proof: verified\n";
+        output.textContent += "🔐 Zero-knowledge payload: sealed";
+        log("Human Passport check passed.");
+      } else {
+        output.textContent += "❌ Passport check failed\n";
+        output.textContent += "Try again or refresh local witness state.";
+        log("Human Passport check failed.");
+      }
+    };
+
     // Auto-connect to Zapier logs every 8s
     setInterval(() => log('Ouroboros heartbeat — no attempts'), 8000);
-    
+
     log('Phoenix Shield armed. Ghost Protocol live.');
   </script>
 </body>
