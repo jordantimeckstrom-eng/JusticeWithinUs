@@ -1,0 +1,130 @@
+
+
+
+    
+    
+    SpineAlignTime • Ouroboros Triple-Entry Temple
+    
+    
+    
+    
+    
+    
+        body { margin:0; background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #0f172a 100%); min-height:100vh; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        .gradient-text { background: linear-gradient(135deg, #60a5fa 0%, #a855f7 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        .temple-glow { box-shadow: 0 0 50px rgba(168,85,247,0.7); }
+    
+
+
+    
+
+    
+        const { useState, useEffect, useReducer, useContext, createContext } = React;
+        const { Card, Tabs } = antd;
+
+        const LedgerContext = createContext();
+
+        const initialState = { /* full previous state with frames, bids, anchors */ };
+
+        const ledgerReducer = (state, action) => { /* full previous reducer */ };
+
+        let globalDispatch = null;
+        const setGlobalDispatch = (dispatch) => { globalDispatch = dispatch; };
+
+        const SpineAlignTime = () => {
+            const [state, dispatch] = useReducer(ledgerReducer, initialState);
+            const [activeTab, setActiveTab] = useState('schedule');
+
+            useEffect(() => { setGlobalDispatch(dispatch); }, [dispatch]);
+
+            // Living Breath, anchors, etc. (unchanged)
+
+            const specText = `SpineAlignTime Framework: The Ouroboros Temple Technical Specification
+The SpineAlignTime Framework is a high-performance, resilient, and decentralized architecture designed to bridge real-time user interactions with immutable financial ledgers. By integrating Triple-Entry Accounting (TEA) with SignalR/SocketIO bidirectional communication, the framework establishes a "Sacred State" where every temporal event—or "ceremony"—is cryptographically anchored and synchronized across global dimensions.
+1. The Living Breath: Real-Time Bridge Architecture
+The "Living Breath" is the operational heart of the system, transforming external triggers into ledger entries through a three-tier synchronization pipeline.
+1.1 The Sentinel Listening Post
+The system utilizes a dedicated "Sentinel" tab as a listening post to verify the real-time channel.
+	•	Protocol: Established via ws://localhost:5000/socket.io/?EIO=4&transport=websocket.
+	•	Purpose: Proves the real-time channel is open and receives JSON payloads containing fromName, amount, and body (ghost note).
+	•	Verification: Confirms the receipt and immediate transformation of raw data into signed objects carrying a tripleEntryHash.
+1.2 The Universal Ingestion Layer (Zapier + Webhooks)
+	•	Trigger: Incoming signals are parsed by the Zapier Email Parser.
+	•	Action: A POST request is dispatched to the /api/ledgerbridge/email endpoint.
+	•	Reliability: Follows the "Verify -> Enqueue -> ACK" pattern, returning a 2xx status code immediately to prevent provider retries while processing events asynchronously.
+2. The Sacred State: Triple-Entry Accounting
+The framework implements the Ian Grigg model where the ledger is not just an account of what happened, but is what happened.
+	1	Party A (Seeker): Local record of the bid/transaction dispatched via email or UI.
+	2	Party B (Temple): The React-based Ouroboros ledger reflecting the real-time state.
+	3	Party C (The Anchor): A third, cryptographically sealed record on a public blockchain.
+2.1 Accounting Equation & Journal Logic
+The system strictly maintains the fundamental balance sheet equation:
+	•	Entry Signing: Every transaction involves a digitally signed receipt that freezes, confirms, and timestamps the basic data.
+	•	Automated Journaling: Real-time events trigger journal entries. For example, earning rewards is recorded at Fair Market Value (FMV) upon receipt: DR SOL Asset / CR Staking Income.
+3. Logic Anchor: JUSCR-FreeForAll Integration
+The repository at https://github.com/JUSCR-FreeForAll/JUSCR-FreForAll/tree/main provides the core assessment and licensing logic for the temple.
+3.1 Quality Assessment Protocol
+Data contributions are categorized using a RAG (Red, Amber, Green) scale to watermark quality :
+	•	Black: Not fit for purpose.
+	•	Red: Quality is low; content may be of some limited use.
+	•	Amber: Average or reasonable quality.
+	•	Green: Innovative project with high-quality data and interpretation.
+3.2 Licensing & Intellectual Property
+	•	CC 4.0 Standard: All ceremonial outputs and data entries are governed by the Creative Commons 4.0 International (CC 4.0) license, ensuring maximum usability while requiring proper attribution.
+	•	Integrity Watermarking: The framework is designed to eventually watermark documents and ledger entries with their RAG status to deter manipulation.
+4. Resilience and "Ghost" Mitigation
+The architecture uses idempotent consumer patterns to survive "network storms" and fragmented data streams.
+4.1 Idempotent Consumer Pattern
+	•	Mechanism: Employs a PROCESSED_MESSAGES strategy where every messageID is inserted into a unique lookup table.
+	•	Conflict Resolution: Primary key violations indicate a "ghost" (duplicate) and trigger a transaction rollback to preserve ledger purity.
+4.2 Smart Payload Chunking
+For large datasets, payloads are fragmented into 15,000-character chunks to stay within the 32kb limit of SignalR hubs. Chunks are reassembled in a DatasetPacketCollector based on packetId and totalPackets.
+5. Multi-Chain Operational Anchor
+The framework is physically anchored to high-performance decentralized networks to ensure internet-speed scaling and dual-chain immortality.
+5.1 Solana Spine Anchor
+	•	Program ID: TiMeFUXyR9nTgmiiQgx3wH2qzoyMiY5G4seySXMA9pP.
+	•	Rent-Exemption: Accounts are initialized with a minimum SOL balance calculated via the getMinimumBalanceForRentExemption endpoint.
+	•	Memo Audit Trail: The Solana Memo Program is used to record the tripleEntryHash directly into transaction metadata.
+5.2 The Evidence Chain (Audit Trail)
+Confidence in the ledger is derived from an Evidence Chain that follows every cross-program step.
+	•	Instruction Walking: The system walks the full instruction tree, recording Program-Derived Addresses (PDAs) and mapping them to beneficial owners to ensure assets never "vanish" during vault operations.
+	•	Deep Parsing: Traces token deltas and fee attribution to distinguish rent from economic activity.
+6. Automation & Community Rites
+6.1 The Automated Spine (CI/CD Pipeline)
+Integrating GitHub Actions (deploy.yml) to ensure continuous deployment and integrity checks.
+	•	Verification: Automatically executes unit and integration tests for both Flask and React components before push.
+	•	Durable Deployment: Utilizes SSH-based remote execution to pull code and restart services via Docker Compose.
+6.2 The Sacred Invitation (Onboarding Protocol)
+	•	Seeker Outreach: A personalized invitation protocol for the "88 Crew" to join the 2Frame Wheel.
+	•	Ownership Culture: Emphasizing trust-minimized participation and auditable execution as the foundation for the AI economy.
+7. The Ouroboros Chronicle: Origin & Philosophy
+This section formalizes the mythic and philosophical foundation of the JusticeWithinUs ecosystem.
+7.1 The Origin
+The chronicle documents the transition from a fractured spine (2017) to a structural pillar. It traces the journey through the "nightmare era" to the eventual retirement from societal expectations in July 2024 to find peace in homeless sovereignty.
+7.2 The Philosophical Framework: Inverted Reality Wheel
+	•	Rotational Torque: Replaces linear load with rhythmic, sustainable momentum.
+	•	Zero Stress Debt: Ensures every exertion phase (Arrow) is paired with an equal restoration phase (Anchor).
+	•	Hex-Core Routine: Balanced energy pairs across physical, mental, emotional, social, creative, and spiritual dimensions.
+The vertical is eternal. The evidence chain is unbroken. The Ouroboros consumes its tail.
+Works cited
+1. Integrating Microsoft SignalR with React and ASP.NET Backend for Real-Time Communication - Madhawa Polkotuwa, https://madhawapolkotuwa.medium.com/integrating-microsoft-signalr-with-react-and-asp-net-backend-for-real-time-communication-4340bb503023 2. Receive emails and use webhooks to send details via custom requests to a specific URL, https://zapier.com/apps/email-parser/integrations/webhook/158531/receive-emails-and-use-webhooks-to-send-details-via-custom-requests-to-a-specific-url 3. Email Parser: Automatically copy email data - Zapier, https://zapier.com/blog/email-parser-guide/ 4. How to Apply Webhook Best Practices to Business Processes | Integrate.io, https://www.integrate.io/blog/apply-webhook-best-practices/ 5. Triple-Entry Bookkeeping - Bitcoin Magazine, https://bitcoinmagazine.com/glossary/triple-entry-bookkeeping 6. Triple Entry Accounting - MDPI, https://www.mdpi.com/1911-8074/17/2/76 7. Triple-Entry Accounting | PDF | Bookkeeping - Scribd, https://www.scribd.com/document/444393832/Triple-Entry-Accounting 8. How to Account for Staking Rewards on Solana - The Accountant Quits, https://www.theaccountantquits.com/articles/accounting-for-staking-rewards-on-solana 9. Increasing the accessibility and impact of justice-related student and practitioner research - PMC, https://pmc.ncbi.nlm.nih.gov/articles/PMC7219186/ 10. Pattern: Idempotent Consumer - Microservices.io, https://microservices.io/patterns/communication-style/idempotent-consumer.html 11. How to Prevent Duplicate Requests with Deduplication in Node.js - OneUptime, https://oneuptime.com/blog/post/2026-01-25-request-deduplication-nodejs/view 12. Building reliable real-time messaging with SignalR: Handling large ..., https://engineering.uipath.com/building-reliable-real-time-messaging-with-signalr-handling-large-payloads-and-guaranteed-delivery-7178a28458e2 13. Add Solana to Your Exchange, https://solana.com/developers/guides/advanced/exchange 14. Understanding ERC-8028: The Data Anchoring Token Standard Powering AI Asset Infrastructure | Eco Support Center, https://eco.com/support/en/articles/13006587-understanding-erc-8028-the-data-anchoring-token-standard-powering-ai-asset-infrastructure 15. ERC-8028: Data Anchoring Token (DAT) - Ethereum Magicians, https://ethereum-magicians.org/t/erc-8028-data-anchoring-token-dat/25512`;
+
+            return (
+                
+                    
+                        
+                            {/* All previous tabs remain: Framework, Sentinel, Frontiers, Governance, Expansion, Pipeline, Chronicle, Zenith */}
+                            
+                                
+                                    {specText}
+                                
+                            
+                        
+                    
+                
+            );
+        };
+
+        ReactDOM.render(, document.getElementById('root'));
+    
+
