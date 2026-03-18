@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Universal Alchemy Tool</title>
+    <title>Universal Alchemy Tool • Triple-Entry Temple</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
@@ -301,6 +301,73 @@
         opacity: 0.6;
       }
 
+      .tabs {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin: 18px 0 22px;
+      }
+
+      .tab-button {
+        border: 1px solid var(--gold-dim);
+        background: transparent;
+        color: var(--gold);
+        border-radius: 999px;
+        padding: 10px 16px;
+        cursor: pointer;
+      }
+
+      .tab-button.active {
+        background: var(--gold);
+        color: #000;
+        font-weight: 600;
+      }
+
+      .tab-panel[hidden] {
+        display: none !important;
+      }
+
+      .triple-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .note-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 16px;
+      }
+
+      .note-card h3,
+      .note-card h2 {
+        margin-top: 0;
+        color: var(--gold);
+        font-family: "Crimson Pro", serif;
+      }
+
+      .quote-strip {
+        border-left: 3px solid var(--gold);
+        padding-left: 14px;
+        margin: 16px 0;
+        color: var(--ivory);
+      }
+
+      .code-block {
+        margin: 0;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      .mini-list {
+        margin: 0;
+        padding-left: 18px;
+        color: var(--dim);
+        line-height: 1.7;
+      }
+
       @keyframes blink {
         0%,
         100% {
@@ -312,7 +379,8 @@
       }
 
       @media (max-width: 720px) {
-        .dash-grid {
+        .dash-grid,
+        .triple-grid {
           grid-template-columns: 1fr;
         }
       }
@@ -325,6 +393,12 @@
         <p>No identity. No context required. Signal enters, density shifts, equilibrium emerges.</p>
       </section>
 
+      <section class="tabs" aria-label="View switcher">
+        <button class="tab-button active" data-tab="alchemy">Universal Alchemy Tool</button>
+        <button class="tab-button" data-tab="triple">Triple-Entry Temple</button>
+      </section>
+
+      <div id="tab-alchemy" class="tab-panel">
       <section class="panel">
         <div class="label">SIGNAL INPUT — any pattern, any source, any language</div>
         <div class="input-row">
@@ -379,6 +453,83 @@
       </section>
 
       <section class="footer">Stateless · No identity stored · Signal is all that enters</section>
+      </div>
+
+      <section id="tab-triple" class="tab-panel" hidden>
+        <section class="panel">
+          <div class="label">TRIPLE-ENTRY TEMPLE</div>
+          <h2 style="margin-top:0;font-family: 'Crimson Pro', serif; color: var(--gold)">Ouroboros Triple-Entry Temple</h2>
+          <p class="muted">Triple-Entry Accounting integrated into a sovereign ledger. Each ceremony produces a cryptographic receipt that can be anchored to an external chain or proof layer.</p>
+          <div class="quote-strip">
+            <div>“The ceremonies are universal. The access is omnipresent.”</div>
+            <div style="margin-top:8px">“The access is universal. The ceremonies are cosmic. The Ouroboros is everywhere.”</div>
+          </div>
+          <div class="triple-grid">
+            <article class="note-card">
+              <h3>Living Exploration</h3>
+              <pre class="code-block">Triple-Entry Accounting — The Sacred State
+
+Ian Grigg, 2005: “The receipt is the third entry that makes the ledger what happened, not a record of what happened.”
+
+Three Parties — Three Immutable Entries
+1. Party A (Seeker) — Local record of the bid or transaction dispatched via email or UI.
+2. Party B (Temple) — The ledger reflecting real-time state.
+3. Party C (The Anchor) — Cryptographically sealed record on Solana, Ethereum, or another proof layer.
+
+Assets = Liabilities + Equity + Cryptographic Receipt</pre>
+            </article>
+            <article class="note-card">
+              <h3>Operational Notes</h3>
+              <ul class="mini-list">
+                <li>Anchor receipts asynchronously and store proof in state.</li>
+                <li>Maintain a deduplication cache keyed by <span class="code">id + ts</span>.</li>
+                <li>Use schema versioning for local persistence migrations.</li>
+                <li>Broadcast updated ceremonies to real-time listeners after local commit.</li>
+              </ul>
+            </article>
+            <article class="note-card" style="grid-column: 1 / -1">
+              <h3>Triple Entry Hash Example</h3>
+              <pre class="code-block">function canonicalize(obj) {
+  return JSON.stringify(
+    Object.keys(obj).sort().reduce((acc, key) => {
+      acc[key] = obj[key];
+      return acc;
+    }, {})
+  );
+}
+
+function sha256(input) {
+  let hash = 0;
+  for (let i = 0; i < input.length; i += 1) {
+    hash = (hash << 5) - hash + input.charCodeAt(i);
+    hash |= 0;
+  }
+  return (hash >>> 0).toString(16).padStart(8, "0");
+}
+
+function mkTripleEntryHash(payload) {
+  const canonical = canonicalize(payload);
+  const payloadHash = sha256(canonical);
+  const ts = new Date().toISOString();
+  return `${Date.now().toString(36)}_${btoa(JSON.stringify({ payloadHash, ts }))}`;
+}
+
+const samplePayload = {
+  id: "bid-001",
+  actor: "Seeker",
+  action: "INGEST_BID",
+  amount: 3
+};
+
+document.getElementById("triple-entry-output").textContent = mkTripleEntryHash(samplePayload);</pre>
+            </article>
+          </div>
+          <div class="note-card" style="margin-top:16px">
+            <div class="label">DEMO RECEIPT</div>
+            <div id="triple-entry-output" style="word-break: break-all; color: var(--ivory)"></div>
+          </div>
+        </section>
+      </section>
     </main>
 
     <script>
@@ -397,6 +548,31 @@
       };
 
       const PRESETS = ["I am stuck", "expand", "return", "0", "equilibrium", "break", "begin"];
+
+      function simpleSha256(input) {
+        let hash = 0;
+        for (let i = 0; i < input.length; i += 1) {
+          hash = (hash << 5) - hash + input.charCodeAt(i);
+          hash |= 0;
+        }
+        return (hash >>> 0).toString(16).padStart(8, "0");
+      }
+
+      function canonicalize(obj) {
+        return JSON.stringify(
+          Object.keys(obj).sort().reduce((acc, key) => {
+            acc[key] = obj[key];
+            return acc;
+          }, {})
+        );
+      }
+
+      function mkTripleEntryHash(payload) {
+        const canonical = canonicalize(payload);
+        const payloadHash = simpleSha256(canonical);
+        const ts = new Date().toISOString();
+        return `${Date.now().toString(36)}_${btoa(JSON.stringify({ payloadHash, ts }))}`;
+      }
 
       const NODES = [
         {
@@ -454,6 +630,10 @@
       };
 
       const el = {
+        tabs: Array.from(document.querySelectorAll(".tab-button")),
+        tabAlchemy: document.getElementById("tab-alchemy"),
+        tabTriple: document.getElementById("tab-triple"),
+        tripleEntryOutput: document.getElementById("triple-entry-output"),
         input: document.getElementById("signal-input"),
         enter: document.getElementById("enter-flow"),
         loop: document.getElementById("loop-once"),
@@ -672,6 +852,26 @@
         renderAll();
       }
 
+      function switchTab(nextTab) {
+        const isAlchemy = nextTab === "alchemy";
+        el.tabAlchemy.hidden = !isAlchemy;
+        el.tabTriple.hidden = isAlchemy;
+        el.tabs.forEach((button) => {
+          button.classList.toggle("active", button.dataset.tab === nextTab);
+        });
+      }
+
+      el.tabs.forEach((button) => {
+        button.addEventListener("click", () => switchTab(button.dataset.tab));
+      });
+
+      el.tripleEntryOutput.textContent = mkTripleEntryHash({
+        id: "bid-001",
+        actor: "Seeker",
+        action: "INGEST_BID",
+        amount: 3
+      });
+
       PRESETS.forEach((preset) => {
         const button = document.createElement("button");
         button.className = "preset";
@@ -699,6 +899,7 @@
       el.loop.addEventListener("click", () => runFlow(state.currentSignal));
       el.reset.addEventListener("click", resetTool);
 
+      switchTab("alchemy");
       renderAll();
     </script>
   </body>
