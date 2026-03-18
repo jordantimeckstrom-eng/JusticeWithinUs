@@ -3,14 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Universal Alchemy Tool</title>
+    <title>JUSCR · Sovereign Circuit</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <style>
       :root {
         --bg: #06060e;
-        --surface: #0d0d1a;
+        --panel: #0d0d1a;
         --card: #111124;
         --gold: #c9a84c;
         --gold-dim: #7a6328;
@@ -26,9 +26,13 @@
         box-sizing: border-box;
       }
 
+      html,
       body {
         margin: 0;
-        min-height: 100vh;
+        min-height: 100%;
+      }
+
+      body {
         background: radial-gradient(circle at top, rgba(201, 168, 76, 0.08), transparent 35%), var(--bg);
         color: var(--ivory);
         font-family: "JetBrains Mono", monospace;
@@ -39,108 +43,367 @@
         font: inherit;
       }
 
-      .page {
-        max-width: 960px;
+      button {
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .app {
+        max-width: 1100px;
         margin: 0 auto;
-        padding: 24px 16px 48px;
-      }
-
-      .header,
-      .footer {
-        text-align: center;
-      }
-
-      .header h1 {
-        margin: 0 0 6px;
-        color: var(--gold);
-        font-family: "Crimson Pro", serif;
-        font-size: clamp(2rem, 4vw, 3rem);
-        letter-spacing: 0.06em;
-      }
-
-      .header p,
-      .muted {
-        color: var(--dim);
-      }
-
-      .panel {
-        background: rgba(13, 13, 26, 0.94);
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        padding: 20px;
-        box-shadow: 0 18px 60px rgba(0, 0, 0, 0.2);
-      }
-
-      .label {
-        font-size: 0.72rem;
-        letter-spacing: 0.12em;
-        color: var(--dim);
-        margin-bottom: 10px;
-      }
-
-      .input-row,
-      .action-row,
-      .preset-row,
-      .card-head,
-      .meter-row,
-      .history-row,
-      .loop-counter {
+        min-height: 100vh;
         display: flex;
-        gap: 10px;
-        align-items: center;
+        flex-direction: column;
+        padding: 16px;
       }
 
-      .input-row,
-      .preset-row,
-      .action-row {
-        flex-wrap: wrap;
+      .shell,
+      .card,
+      .glass {
+        border: 1px solid var(--border);
       }
 
-      .signal-input {
-        flex: 1 1 280px;
-        min-width: 0;
-        padding: 12px 14px;
-        border: 1px solid var(--gold-dim);
+      .shell {
+        background: var(--panel);
+        border-radius: 12px;
+        padding: 14px 18px;
+      }
+
+      .card {
+        background: var(--card);
+        border-radius: 12px;
+        padding: 24px;
+      }
+
+      .glass {
+        background: rgba(255, 255, 255, 0.02);
         border-radius: 10px;
-        background: rgba(6, 6, 14, 0.96);
-        color: var(--ivory);
-        outline: none;
       }
 
-      .signal-input:focus {
+      .btn,
+      .btn-ghost,
+      .btn-danger,
+      .nav-btn,
+      .preset {
+        cursor: pointer;
+        transition: 0.18s ease;
+      }
+
+      .btn:disabled,
+      .btn-ghost:disabled,
+      .btn-danger:disabled,
+      .nav-btn:disabled {
+        cursor: not-allowed;
+      }
+
+      .btn,
+      .btn-ghost,
+      .btn-danger {
+        border-radius: 999px;
+        padding: 10px 18px;
+      }
+
+      .btn {
+        background: var(--gold);
+        color: #000;
+        border: 0;
+        font-weight: 600;
+      }
+
+      .btn:hover,
+      .preset:hover,
+      .nav-btn:hover {
+        transform: translateY(-1px);
+      }
+
+      .btn-ghost {
+        background: transparent;
+        border: 1px solid var(--gold-dim);
+        color: var(--gold);
+      }
+
+      .btn-danger {
+        background: transparent;
+        border: 1px solid rgba(224, 82, 82, 0.4);
+        color: var(--bad);
+      }
+
+      .input {
+        width: 100%;
+        background: var(--bg);
+        border: 1px solid var(--gold-dim);
+        color: var(--ivory);
+        padding: 10px 12px;
+        border-radius: 6px;
+        outline: 0;
+        font-size: 0.9rem;
+      }
+
+      .input:focus {
         border-color: var(--gold);
         box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.12);
       }
 
-      .button {
-        border: 1px solid transparent;
-        border-radius: 999px;
-        padding: 10px 18px;
-        cursor: pointer;
-        transition: 0.2s ease;
+      .label {
+        font-size: 0.7rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--dim);
       }
 
-      .button:disabled {
-        cursor: not-allowed;
-        opacity: 0.45;
+      .serif {
+        font-family: "Crimson Pro", serif;
       }
 
-      .button-primary {
-        background: var(--gold);
-        color: #000;
+      .mono {
+        font-family: "JetBrains Mono", monospace;
+      }
+
+      .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 24px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        flex-shrink: 0;
+      }
+
+      .brand-mark {
+        font-size: 1.3rem;
         font-weight: 600;
       }
 
-      .button-secondary {
-        background: transparent;
-        color: var(--gold);
-        border-color: var(--gold-dim);
+      .brand-sub {
+        font-size: 0.62rem;
+        color: var(--gold-dim);
+        letter-spacing: 1px;
       }
 
-      .button-danger {
+      .nav {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+        justify-content: center;
+        flex: 1;
+      }
+
+      .nav-btn {
         background: transparent;
-        color: var(--bad);
-        border-color: rgba(224, 82, 82, 0.4);
+        border: 1px solid transparent;
+        color: var(--dim);
+        border-radius: 8px;
+        padding: 6px 11px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.76rem;
+      }
+
+      .nav-btn.active {
+        background: rgba(201, 168, 76, 0.14);
+        border-color: rgba(201, 168, 76, 0.35);
+        color: var(--gold);
+      }
+
+      .header-meta {
+        color: var(--gold-dim);
+        text-align: right;
+        font-size: 0.68rem;
+        flex-shrink: 0;
+      }
+
+      .header-meta small {
+        display: block;
+        opacity: 0.45;
+        margin-top: 2px;
+        font-size: 0.56rem;
+      }
+
+      .dashboard-hero {
+        position: relative;
+        overflow: hidden;
+      }
+
+      .dashboard-aura {
+        position: absolute;
+        inset: 50% auto auto 50%;
+        width: 200%;
+        height: 200%;
+        transform: translate(-50%, -50%);
+        background: radial-gradient(circle, rgba(201, 168, 76, 0.05) 0%, transparent 60%);
+        pointer-events: none;
+        animation: pulse 8s infinite ease-in-out;
+      }
+
+      .dashboard-inner {
+        position: relative;
+        z-index: 1;
+      }
+
+      .dashboard-title {
+        margin: 0 0 6px;
+        color: var(--gold);
+        font-size: clamp(2rem, 4vw, 2.2rem);
+        text-align: center;
+      }
+
+      .dashboard-sub {
+        color: var(--dim);
+        font-size: 0.8rem;
+        text-align: center;
+        margin: 0 0 32px;
+      }
+
+      .count-wrap {
+        text-align: center;
+        margin: 32px 0;
+      }
+
+      .count-value {
+        font-size: 4rem;
+        line-height: 1;
+      }
+
+      .progress-track,
+      .mini-progress,
+      .bar-track,
+      .meter-track {
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 999px;
+        overflow: hidden;
+      }
+
+      .progress-track {
+        max-width: 320px;
+        margin: 16px auto 0;
+        height: 6px;
+      }
+
+      .progress-fill,
+      .mini-fill,
+      .bar-fill {
+        height: 100%;
+        border-radius: inherit;
+      }
+
+      .progress-fill {
+        background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+        transition: width 0.6s ease;
+      }
+
+      .button-row,
+      .input-row,
+      .preset-row,
+      .fortress-actions,
+      .loop-actions,
+      .school-actions,
+      .tiny-row,
+      .loop-counter,
+      .node-head,
+      .node-meta,
+      .metric-head,
+      .chat-label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .button-row,
+      .input-row,
+      .preset-row,
+      .fortress-actions,
+      .loop-actions,
+      .school-actions,
+      .nav,
+      .header {
+        flex-wrap: wrap;
+      }
+
+      .button-row {
+        justify-content: center;
+      }
+
+      .section-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 16px;
+        margin-bottom: 24px;
+      }
+
+      .section-head h2,
+      .simple-title {
+        margin: 0;
+      }
+
+      .goal-list,
+      .flow-nodes,
+      .history-list,
+      .school-stream {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .goal-card,
+      .history-entry,
+      .chat-bubble {
+        padding: 16px;
+      }
+
+      .goal-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .goal-name,
+      .slot-label,
+      .tribe-name {
+        font-weight: 600;
+      }
+
+      .tiny {
+        font-size: 0.68rem;
+      }
+
+      .muted {
+        color: var(--dim);
+      }
+
+      .flow-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .flow-head {
+        text-align: center;
+      }
+
+      .flow-head h2 {
+        margin: 0 0 5px;
+        color: var(--gold);
+        font-size: 1.8rem;
+      }
+
+      .flow-head p {
+        margin: 0;
+        color: var(--dim);
+        font-size: 0.78rem;
+      }
+
+      .input-row input {
+        flex: 1 1 280px;
       }
 
       .preset {
@@ -149,99 +412,83 @@
         background: transparent;
         border: 1px solid var(--gold-dim);
         color: var(--gold-dim);
-        cursor: pointer;
-        font-size: 0.72rem;
+        font-size: 0.7rem;
       }
 
-      .nodes {
+      .flow-nodes {
         display: grid;
-        gap: 12px;
-        margin-top: 18px;
       }
 
-      .node-card {
+      .flow-node {
         background: var(--card);
-        border: 1px solid var(--border);
         border-radius: 14px;
+        border: 1px solid var(--border);
         padding: 16px;
-        transition: 0.4s ease;
+        transition: all 0.4s ease;
         opacity: 0.38;
       }
 
-      .node-card.complete,
-      .node-card.active {
+      .flow-node.active,
+      .flow-node.complete {
         opacity: 1;
       }
 
-      .node-card.active {
-        box-shadow: inset 0 0 0 1px currentColor, 0 0 24px color-mix(in srgb, currentColor 20%, transparent);
-      }
-
-      .node-card p {
+      .flow-node p {
         color: var(--dim);
         font-size: 0.84rem;
         line-height: 1.55;
         margin: 0 0 12px;
       }
 
-      .card-head {
+      .node-head {
         justify-content: space-between;
         margin-bottom: 8px;
       }
 
       .node-meta {
-        display: flex;
-        align-items: center;
-        gap: 10px;
+        gap: 8px;
       }
 
       .node-glyph {
         font-size: 1.35rem;
       }
 
-      .node-label,
-      .tiny,
-      .meter-scale,
-      .footer {
+      .node-label {
         font-size: 0.72rem;
         letter-spacing: 0.12em;
+        font-weight: 600;
       }
 
-      .bar-track,
-      .meter-track {
-        background: rgba(255, 255, 255, 0.07);
-        border-radius: 999px;
-        overflow: hidden;
+      .processing {
+        animation: blink 1s infinite;
       }
 
       .bar-track {
         height: 4px;
       }
 
-      .bar-fill {
-        height: 100%;
-        width: 0;
-        border-radius: 999px;
-        transition: width 0.5s ease;
-      }
-
-      .dash-grid {
+      .flow-bottom {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: 1fr 1fr;
         gap: 16px;
-        margin-top: 18px;
       }
 
-      .equilibrium-value {
-        font-family: "Crimson Pro", serif;
+      .metric-value {
         font-size: 2.2rem;
         line-height: 1;
+      }
+
+      .metric-head {
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 8px;
       }
 
       .meter-track {
         position: relative;
         height: 8px;
         margin: 12px 0 8px;
+        overflow: visible;
       }
 
       .meter-center {
@@ -260,45 +507,179 @@
         height: 8px;
         border-radius: 50%;
         transform: translateX(-50%);
-        transition: left 0.5s ease;
+        transition: left 0.5s ease, background 0.3s ease;
+      }
+
+      .meter-scale,
+      .slot-day,
+      .meta-stamp,
+      .school-name,
+      .footnote,
+      .footer {
+        font-size: 0.7rem;
       }
 
       .meter-scale {
         display: flex;
         justify-content: space-between;
         color: var(--dim);
-        font-size: 0.62rem;
+        font-size: 0.6rem;
       }
 
-      .history {
-        margin-top: 18px;
+      .fortress-body {
+        text-align: center;
       }
 
-      .history-list {
+      .fortress-body p {
+        max-width: 480px;
+        margin: 8px auto 32px;
+      }
+
+      .fortress-ring {
+        margin: 0 auto 24px;
+        width: 180px;
+        height: 180px;
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 50%;
+        border: 2px dashed var(--gold-dim);
+      }
+
+      .fortress-count {
+        font-size: 2.8rem;
+        line-height: 1;
+      }
+
+      .fortress-note {
+        max-width: 360px;
+        margin: 0 auto 16px;
+      }
+
+      .commit-log {
+        max-width: 500px;
+        margin: 32px auto 0;
+        text-align: left;
+      }
+
+      .commit-item {
+        padding: 10px 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 6px;
+      }
+
+      .auction-grid,
+      .tribe-grid {
+        display: grid;
+        gap: 16px;
+      }
+
+      .auction-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      }
+
+      .tribe-grid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        margin-top: 24px;
+      }
+
+      .slot-card,
+      .tribe-card {
+        padding: 16px;
+      }
+
+      .tribe-card {
+        position: relative;
+        overflow: hidden;
+      }
+
+      .tribe-glyph {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        opacity: 0.18;
+        font-size: 2rem;
+      }
+
+      .school-panel {
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        height: 62vh;
       }
 
-      .history-row {
-        background: rgba(255, 255, 255, 0.03);
-        border-radius: 10px;
-        padding: 10px 12px;
-        font-size: 0.78rem;
+      .school-stream {
+        flex: 1;
+        overflow-y: auto;
+        padding: 16px 0;
       }
 
-      .history-row .spacer {
-        margin-left: auto;
+      .chat-wrap {
+        max-width: 82%;
       }
 
-      .processing {
-        animation: blink 1s infinite;
+      .chat-wrap.sarai {
+        align-self: flex-start;
+      }
+
+      .chat-wrap.jordan {
+        align-self: flex-end;
+      }
+
+      .chat-label {
+        margin-bottom: 4px;
+        font-size: 0.6rem;
+      }
+
+      .chat-bubble {
+        font-size: 0.88rem;
+        line-height: 1.5;
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .chat-wrap.sarai .chat-bubble {
+        background: rgba(201, 168, 76, 0.05);
+        border-left: 2px solid var(--gold);
+      }
+
+      .chat-wrap.jordan .chat-bubble {
+        border-right: 2px solid var(--ivory);
       }
 
       .footer {
-        margin-top: 28px;
+        margin-top: auto;
+        text-align: center;
+        padding: 32px 16px;
+        color: var(--dim);
+      }
+
+      .footer .accent {
         color: var(--gold-dim);
-        opacity: 0.6;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 64px;
+      }
+
+      .tab-label {
+        display: none;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: translate(-50%, -50%) scale(0.95);
+          opacity: 0.4;
+        }
+        50% {
+          transform: translate(-50%, -50%) scale(1.05);
+          opacity: 0.75;
+        }
       }
 
       @keyframes blink {
@@ -307,84 +688,61 @@
           opacity: 1;
         }
         50% {
-          opacity: 0.25;
+          opacity: 0.15;
         }
       }
 
-      @media (max-width: 720px) {
-        .dash-grid {
+      @media (min-width: 640px) {
+        .tab-label {
+          display: inline;
+        }
+      }
+
+      @media (max-width: 760px) {
+        .flow-bottom {
           grid-template-columns: 1fr;
+        }
+
+        .section-head,
+        .goal-card,
+        .commit-item {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .school-panel {
+          height: 70vh;
         }
       }
     </style>
   </head>
   <body>
-    <main class="page">
-      <section class="header">
-        <h1>Universal Alchemy Tool</h1>
-        <p>No identity. No context required. Signal enters, density shifts, equilibrium emerges.</p>
-      </section>
-
-      <section class="panel">
-        <div class="label">SIGNAL INPUT — any pattern, any source, any language</div>
-        <div class="input-row">
-          <input id="signal-input" class="signal-input" type="text" placeholder="Enter any signal — word, number, thought, pattern…" />
-          <button id="enter-flow" class="button button-primary">ENTER FLOW</button>
+    <div class="app">
+      <header class="shell header">
+        <div class="brand">
+          <span class="serif brand-mark">JUSCR</span>
+          <span class="brand-sub mono">SOVEREIGN CIRCUIT</span>
         </div>
-        <div id="preset-row" class="preset-row" style="margin-top: 12px"></div>
-      </section>
-
-      <section id="nodes" class="nodes"></section>
-
-      <section class="dash-grid">
-        <div class="panel">
-          <div class="label">EQUILIBRIUM STATE</div>
-          <div class="meter-row" style="justify-content: space-between; align-items: baseline">
-            <span id="equilibrium-value" class="equilibrium-value">100.0</span>
-            <span id="equilibrium-label" class="tiny muted">EQUILIBRIUM</span>
-          </div>
-          <div class="meter-track">
-            <div class="meter-center"></div>
-            <div id="meter-dot" class="meter-dot"></div>
-          </div>
-          <div class="meter-scale">
-            <span>0 ·· DENSE</span>
-            <span>100 ·· EQUIL</span>
-            <span>200 ·· DIFFUSE</span>
-          </div>
-          <div class="tiny muted" style="margin-top: 12px">
-            Stability: <span id="stability-value"></span>
-          </div>
+        <nav id="tab-nav" class="nav"></nav>
+        <div class="header-meta mono">
+          <span id="date-label"></span>
+          <small>ECHO · 432Hz</small>
         </div>
+      </header>
 
-        <div class="panel">
-          <div class="label">LOOP CONTROLS</div>
-          <div class="loop-counter">
-            <span style="font-size: 1rem">♾️</span>
-            <span class="tiny" style="color: var(--gold-dim)">Loop <span id="loop-count">0</span></span>
-          </div>
-          <p class="muted" style="font-size: 0.82rem; line-height: 1.6; margin: 14px 0">
-            Feed current output back as the next input. The system keeps moving toward its own equilibrium.
-          </p>
-          <div class="action-row">
-            <button id="loop-once" class="button button-secondary" disabled>↺ Loop Once</button>
-            <button id="reset" class="button button-danger">✕ Reset</button>
-          </div>
-        </div>
-      </section>
+      <main id="main"></main>
 
-      <section id="history-panel" class="panel history" hidden>
-        <div class="label">LOOP HISTORY</div>
-        <div id="history-list" class="history-list"></div>
-      </section>
-
-      <section class="footer">Stateless · No identity stored · Signal is all that enters</section>
-    </main>
+      <footer class="footer mono">
+        <div style="opacity: 0.32">The Vertical Line Wins.</div>
+        <div class="accent" style="margin-top: 6px">ID · TiMeFUXyR9nTgmiiQgx3wH2qzoyMiY5G4seySXMA9pP</div>
+        <div style="margin-top: 5px; opacity: 0.22">Clarity is kindness. Ambiguity imposed on others is harm.</div>
+      </footer>
+    </div>
 
     <script>
       const T = {
         bg: "#06060E",
-        surface: "#0D0D1A",
+        panel: "#0D0D1A",
         card: "#111124",
         gold: "#C9A84C",
         goldDim: "#7A6328",
@@ -396,81 +754,85 @@
         border: "rgba(201,168,76,0.18)"
       };
 
-      const PRESETS = ["I am stuck", "expand", "return", "0", "equilibrium", "break", "begin"];
-
-      const NODES = [
-        {
-          id: "receive",
-          label: "RECEIVE",
-          glyph: "◎",
-          desc: "Signal enters. No judgment. Raw input accepted.",
-          color: "#5B8DD9",
-          process: (v) => v
-        },
-        {
-          id: "compress",
-          label: "COMPRESS",
-          glyph: "▼",
-          desc: "Density increases. Signal finds its lowest form.",
-          color: "#9B59B6",
-          process: (v) => v * 0.618
-        },
-        {
-          id: "resonate",
-          label: "RESONATE",
-          glyph: "≋",
-          desc: "Pattern recognition. Frequency locates itself.",
-          color: T.gold,
-          process: (v) => Math.sin(v) * 100 + 100
-        },
-        {
-          id: "expand",
-          label: "EXPAND",
-          glyph: "▲",
-          desc: "Density releases. Signal finds more space.",
-          color: T.good,
-          process: (v) => v * 1.618
-        },
-        {
-          id: "rebalance",
-          label: "REBALANCE",
-          glyph: "⊕",
-          desc: "System seeks equilibrium. Loop completes.",
-          color: T.bad,
-          process: (v) => v + (100 - v) * 0.5
-        }
+      const GOALS = [
+        { id: "cerv", name: "Cervical alignment", cat: "spine", protocol: "Chin tuck + 10s hold x 5" },
+        { id: "thor", name: "Thoracic openness", cat: "spine", protocol: "Foam roll thoracic + cat/cow" },
+        { id: "lumb", name: "Lumbar stability", cat: "spine", protocol: "Dead bug 3x10 + 20s hold" },
+        { id: "hips", name: "Hip symmetry", cat: "spine", protocol: "90/90 hip stretch + pigeon" },
+        { id: "shou", name: "Shoulder release", cat: "spine", protocol: "Wall angels + doorway stretch" },
+        { id: "brea", name: "Breath depth", cat: "reality", protocol: "4-7-8 or box breathing 5 min" },
+        { id: "post", name: "Posture hold", cat: "reality", protocol: "Hourly 10s wall stand" }
       ];
 
-      const state = {
-        rawInput: "",
-        currentSignal: 100,
-        activeNode: -1,
-        steps: [],
-        loopCount: 0,
-        running: false,
-        finalValue: 100,
-        history: [],
-        timers: []
-      };
+      const TRIBES = [
+        { id: "golden-thread", name: "Golden Thread", glyph: "📖", desc: "Philosophy, doctrine, and the long golden line." },
+        { id: "phoenix-guard", name: "Phoenix Guard", glyph: "🔒", desc: "Chain integrity and eternal return." },
+        { id: "spine-walkers", name: "Spine Walkers", glyph: "🦴", desc: "Health, alignment, and somatic sovereignty." },
+        { id: "ouroboros-ring", name: "Ouroboros Ring", glyph: "♾️", desc: "Systems architecture and self-healing loops." },
+        { id: "clarity-circle", name: "Clarity Circle", glyph: "🜁", desc: "Education, scholarship, and visible truth." },
+        { id: "sovereign-tide", name: "Sovereign Tide", glyph: "🌊", desc: "Governance, time, and collective will." }
+      ];
 
-      const el = {
-        input: document.getElementById("signal-input"),
-        enter: document.getElementById("enter-flow"),
-        loop: document.getElementById("loop-once"),
-        reset: document.getElementById("reset"),
-        nodes: document.getElementById("nodes"),
-        presets: document.getElementById("preset-row"),
-        eqValue: document.getElementById("equilibrium-value"),
-        eqLabel: document.getElementById("equilibrium-label"),
-        loopCount: document.getElementById("loop-count"),
-        meterDot: document.getElementById("meter-dot"),
-        stability: document.getElementById("stability-value"),
-        historyPanel: document.getElementById("history-panel"),
-        historyList: document.getElementById("history-list")
-      };
+      const FLOW_NODES = [
+        { id: "receive", label: "RECEIVE", glyph: "◎", desc: "Signal enters. No judgment. Raw input accepted.", color: "#5B8DD9", process: (v) => v },
+        { id: "compress", label: "COMPRESS", glyph: "▼", desc: "Density increases. Signal finds its lowest form.", color: "#9B59B6", process: (v) => v * 0.618 },
+        { id: "resonate", label: "RESONATE", glyph: "≋", desc: "Pattern recognition. Frequency locates itself.", color: T.gold, process: (v) => Math.sin(v) * 100 + 100 },
+        { id: "expand", label: "EXPAND", glyph: "▲", desc: "Density releases. Signal finds more space.", color: T.good, process: (v) => v * 1.618 },
+        { id: "rebalance", label: "REBALANCE", glyph: "⊕", desc: "System seeks equilibrium. Loop completes.", color: T.bad, process: (v) => v + (100 - v) * 0.5 }
+      ];
+
+      const FLOW_PRESETS = ["I am stuck", "expand", "return", "0", "equilibrium", "break", "begin"];
+
+      const TABS = [
+        { id: "dashboard", label: "Zenith", icon: "⏃" },
+        { id: "spine", label: "SpineAlign", icon: "🦴" },
+        { id: "flow", label: "Flow", icon: "↝" },
+        { id: "fortress", label: "Fortress", icon: "🔒" },
+        { id: "auction", label: "Time Auction", icon: "⏳" },
+        { id: "tribes", label: "Tribes", icon: "🧬" },
+        { id: "school", label: "The School", icon: "🜁" }
+      ];
+
+      function calendarSlotsInit() {
+        const days = ["Mon Mar 16", "Tue Mar 17", "Wed Mar 18", "Thu Mar 19"];
+        const blocks = [
+          { label: "09:00-12:00", id: "am" },
+          { label: "13:00-16:00", id: "pm" }
+        ];
+        return days.flatMap((day) =>
+          blocks.map((block) => ({
+            day,
+            label: block.label,
+            id: `${day}-${block.id}`,
+            bid: null,
+            bidder: ""
+          }))
+        );
+      }
+
+      function loadState(key, init) {
+        try {
+          const raw = localStorage.getItem(key);
+          return raw !== null ? JSON.parse(raw) : init;
+        } catch (error) {
+          return init;
+        }
+      }
+
+      function saveState(key, value) {
+        try {
+          localStorage.setItem(key, JSON.stringify(value));
+        } catch (error) {
+          // ignore storage failures in static mode
+        }
+      }
 
       function signalFromText(text) {
         if (!text) return 100;
+        const numeric = parseFloat(text);
+        if (!Number.isNaN(numeric)) {
+          return Math.max(0, Math.min(200, numeric));
+        }
         let hash = 0;
         for (let i = 0; i < text.length; i += 1) {
           hash = (hash * 31 + text.charCodeAt(i)) & 0xffffffff;
@@ -478,17 +840,17 @@
         return Math.abs(hash % 200);
       }
 
-      function densityLabel(v) {
-        if (v < 40) return { label: "LOW", color: "#5B8DD9" };
-        if (v < 80) return { label: "MEDIUM-LOW", color: "#9B59B6" };
-        if (v < 120) return { label: "EQUILIBRIUM", color: T.good };
-        if (v < 160) return { label: "MEDIUM-HIGH", color: T.warn };
+      function densityLabel(value) {
+        if (value < 40) return { label: "LOW", color: "#5B8DD9" };
+        if (value < 80) return { label: "MEDIUM-LOW", color: "#9B59B6" };
+        if (value < 120) return { label: "EQUILIBRIUM", color: T.good };
+        if (value < 160) return { label: "MEDIUM-HIGH", color: T.warn };
         return { label: "HIGH", color: T.bad };
       }
 
-      function runPipeline(initialSignal) {
-        let value = initialSignal;
-        return NODES.map((node) => {
+      function runPipeline(signal) {
+        let value = signal;
+        return FLOW_NODES.map((node) => {
           const input = value;
           value = node.process(value);
           return {
@@ -499,207 +861,692 @@
         });
       }
 
-      function clearTimers() {
-        state.timers.forEach((timer) => clearTimeout(timer));
-        state.timers = [];
+      const state = {
+        tab: "dashboard",
+        chainCount: loadState("juscr_chain", 0),
+        spineCompleted: loadState("juscr_spine", {}),
+        spineStreak: loadState("juscr_spine_streak", 0),
+        spineLastDate: loadState("juscr_spine_lastdate", ""),
+        fortressLog: loadState("juscr_fortress_log", []),
+        fortressNote: "",
+        slots: loadState("juscr_auction", calendarSlotsInit()),
+        bidding: null,
+        bidInput: "",
+        schoolLog: loadState("juscr_school_log", [
+          { role: "sarai", text: "The channel is open. Speak your reality." }
+        ]),
+        schoolInput: "",
+        schoolThinking: false,
+        schoolReplyTimer: null,
+        flow: {
+          rawInput: "",
+          currentSignal: 100,
+          activeNode: -1,
+          steps: [],
+          loopCount: 0,
+          running: false,
+          finalValue: 100,
+          history: [],
+          timers: []
+        }
+      };
+
+      const main = document.getElementById("main");
+      const tabNav = document.getElementById("tab-nav");
+      document.getElementById("date-label").textContent = new Date().toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric"
+      });
+
+      function persistSpine() {
+        saveState("juscr_spine", state.spineCompleted);
+        saveState("juscr_spine_streak", state.spineStreak);
+        saveState("juscr_spine_lastdate", state.spineLastDate);
       }
 
-      function renderNodes() {
-        el.nodes.innerHTML = "";
-
-        NODES.forEach((node, index) => {
-          const step = state.steps[index];
-          const isActive = state.activeNode === index;
-          const isComplete = typeof step !== "undefined" && state.activeNode !== index;
-          const density = step ? densityLabel(step.output) : null;
-          const barPct = step ? Math.min(100, (step.output / 200) * 100) : 0;
-
-          const card = document.createElement("article");
-          card.className = `node-card${isActive ? " active" : ""}${isComplete ? " complete" : ""}`;
-          card.style.color = node.color;
-          card.style.background = isActive ? `${node.color}18` : T.card;
-          card.style.borderColor = isActive ? node.color : isComplete ? `${node.color}66` : T.border;
-
-          const status = isActive
-            ? `<span class="tiny processing" style="color:${T.goldDim}">PROCESSING</span>`
-            : isComplete && density
-              ? `<span class="tiny" style="color:${density.color}">${density.label}</span>`
-              : "";
-
-          const values = step
-            ? `
-              <div class="tiny muted" style="display:flex;justify-content:space-between;margin-bottom:6px">
-                <span>IN: ${step.input.toFixed(1)}</span>
-                <span>OUT: ${step.output.toFixed(1)}</span>
-              </div>
-              <div class="bar-track">
-                <div class="bar-fill" style="width:${barPct}%;background:${node.color}"></div>
-              </div>
-            `
-            : "";
-
-          card.innerHTML = `
-            <div class="card-head">
-              <div class="node-meta">
-                <span class="node-glyph">${node.glyph}</span>
-                <span class="node-label">${node.label}</span>
-              </div>
-              ${status}
-            </div>
-            <p>${node.desc}</p>
-            ${isActive || isComplete ? values : ""}
-          `;
-
-          el.nodes.appendChild(card);
-        });
+      function persistFortress() {
+        saveState("juscr_chain", state.chainCount);
+        saveState("juscr_fortress_log", state.fortressLog);
       }
 
-      function renderMeter() {
-        const density = densityLabel(state.finalValue);
-        const pct = Math.min(100, (state.finalValue / 200) * 100);
-        const distance = Math.abs(state.finalValue - 100);
-        const stability = Math.max(0, 100 - distance);
-        const stabilityColor = stability > 70 ? T.good : stability > 40 ? T.warn : T.bad;
-
-        el.eqValue.textContent = state.finalValue.toFixed(1);
-        el.eqValue.style.color = density.color;
-        el.eqLabel.textContent = density.label;
-        el.eqLabel.style.color = density.color;
-        el.meterDot.style.left = `${pct}%`;
-        el.meterDot.style.background = density.color;
-        el.meterDot.style.boxShadow = `0 0 12px ${density.color}`;
-        el.stability.textContent = `${stability.toFixed(0)}%`;
-        el.stability.style.color = stabilityColor;
+      function persistAuction() {
+        saveState("juscr_auction", state.slots);
       }
 
-      function renderHistory() {
-        el.historyPanel.hidden = state.history.length === 0;
-        el.historyList.innerHTML = "";
-
-        state.history.forEach((entry) => {
-          const density = densityLabel(Number(entry.output));
-          const row = document.createElement("div");
-          row.className = "history-row";
-          row.innerHTML = `
-            <span style="color:${T.goldDim};min-width:60px">Loop ${entry.loop}</span>
-            <span class="muted">IN ${entry.input}</span>
-            <span class="muted">→</span>
-            <span>OUT ${entry.output}</span>
-            <span class="spacer" style="color:${density.color}">${entry.label}</span>
-          `;
-          el.historyList.appendChild(row);
-        });
+      function persistSchool() {
+        saveState("juscr_school_log", state.schoolLog);
       }
 
-      function renderControls() {
-        el.enter.textContent = state.running ? "FLOWING…" : "ENTER FLOW";
-        el.enter.disabled = state.running;
-        el.loop.disabled = state.running || state.loopCount === 0;
-        el.reset.disabled = state.running;
-        el.input.disabled = state.running;
-        el.loopCount.textContent = String(state.loopCount);
+      function clearFlowTimers() {
+        state.flow.timers.forEach((timer) => clearTimeout(timer));
+        state.flow.timers = [];
       }
 
-      function renderAll() {
-        renderNodes();
-        renderMeter();
-        renderHistory();
-        renderControls();
-      }
-
-      function commitLoop(signal, output) {
-        state.finalValue = output;
-        state.currentSignal = output;
-        state.loopCount += 1;
-        state.history = [
-          {
-            loop: state.loopCount,
-            input: signal.toFixed(1),
-            output: output.toFixed(1),
-            label: densityLabel(output).label
-          },
-          ...state.history.slice(0, 7)
-        ];
+      function resetFlow() {
+        clearFlowTimers();
+        state.flow.rawInput = "";
+        state.flow.currentSignal = 100;
+        state.flow.activeNode = -1;
+        state.flow.steps = [];
+        state.flow.loopCount = 0;
+        state.flow.running = false;
+        state.flow.finalValue = 100;
+        state.flow.history = [];
+        render();
       }
 
       function runFlow(signalOverride) {
-        if (state.running) return;
+        if (state.flow.running) return;
 
-        clearTimers();
-        const signal = typeof signalOverride === "number" ? signalOverride : signalFromText(state.rawInput);
+        clearFlowTimers();
+        const signal = typeof signalOverride === "number" ? signalOverride : signalFromText(state.flow.rawInput);
         const pipeline = runPipeline(signal);
 
-        state.steps = [];
-        state.activeNode = 0;
-        state.running = true;
-        renderAll();
+        state.flow.steps = [];
+        state.flow.activeNode = 0;
+        state.flow.running = true;
+        render();
 
         pipeline.forEach((step, index) => {
           const timer = setTimeout(() => {
-            state.activeNode = index;
-            state.steps = [...state.steps, step];
-            renderAll();
+            state.flow.activeNode = index;
+            state.flow.steps = [...state.flow.steps, step];
+            render();
 
             if (index === pipeline.length - 1) {
-              const output = pipeline[pipeline.length - 1].output;
-              commitLoop(signal, output);
-              renderAll();
-
+              const output = step.output;
               const finishTimer = setTimeout(() => {
-                state.activeNode = -1;
-                state.running = false;
-                renderAll();
+                state.flow.finalValue = output;
+                state.flow.currentSignal = output;
+                state.flow.loopCount += 1;
+                state.flow.history = [
+                  {
+                    loop: state.flow.loopCount,
+                    input: signal.toFixed(1),
+                    output: output.toFixed(1),
+                    label: densityLabel(output).label
+                  },
+                  ...state.flow.history.slice(0, 7)
+                ];
+                state.flow.activeNode = -1;
+                state.flow.running = false;
+                render();
               }, 650);
-              state.timers.push(finishTimer);
+              state.flow.timers.push(finishTimer);
             }
           }, index * 500);
-
-          state.timers.push(timer);
+          state.flow.timers.push(timer);
         });
       }
 
-      function resetTool() {
-        clearTimers();
-        state.rawInput = "";
-        state.currentSignal = 100;
-        state.activeNode = -1;
-        state.steps = [];
-        state.loopCount = 0;
-        state.running = false;
-        state.finalValue = 100;
-        state.history = [];
-        el.input.value = "";
-        renderAll();
+      function toggleGoal(goalId) {
+        state.spineCompleted[goalId] = !state.spineCompleted[goalId];
+        const allDone = GOALS.every((goal) => state.spineCompleted[goal.id]);
+        if (allDone) {
+          const today = new Date().toDateString();
+          if (today !== state.spineLastDate) {
+            state.spineStreak += 1;
+            state.spineLastDate = today;
+          }
+        }
+        persistSpine();
+        render();
       }
 
-      PRESETS.forEach((preset) => {
-        const button = document.createElement("button");
-        button.className = "preset";
-        button.type = "button";
-        button.textContent = preset;
-        button.addEventListener("click", () => {
-          if (state.running) return;
-          state.rawInput = preset;
-          el.input.value = preset;
+      function commitFortress() {
+        if (state.chainCount >= 1132) return;
+        state.chainCount += 1;
+        if (state.fortressNote.trim()) {
+          state.fortressLog = [
+            { ts: new Date().toLocaleString(), note: state.fortressNote.trim() },
+            ...state.fortressLog.slice(0, 49)
+          ];
+          state.fortressNote = "";
+        }
+        persistFortress();
+        render();
+      }
+
+      function confirmBid(slotId) {
+        const amount = parseFloat(state.bidInput);
+        if (!state.bidInput.trim() || Number.isNaN(amount) || amount <= 0) return;
+        state.slots = state.slots.map((slot) =>
+          slot.id === slotId ? { ...slot, bid: amount, bidder: "PhoenixFly" } : slot
+        );
+        state.bidding = null;
+        state.bidInput = "";
+        persistAuction();
+        render();
+      }
+
+      function submitSchool() {
+        const text = state.schoolInput.trim();
+        if (!text || state.schoolThinking) return;
+        state.schoolInput = "";
+        state.schoolThinking = true;
+        state.schoolLog = [...state.schoolLog, { role: "jordan", text }];
+        persistSchool();
+        render();
+
+        const replies = [
+          `You said: "${text}". The algorithm hears. The vertical line holds.`,
+          `"${text}" — what does the spine say about this?`,
+          `Received: "${text}". The Ouroboros notes it.`,
+          `The soul math processes: "${text}". Disappoint everyone. Save yourself.`
+        ];
+
+        if (state.schoolReplyTimer) {
+          clearTimeout(state.schoolReplyTimer);
+        }
+
+        state.schoolReplyTimer = setTimeout(() => {
+          state.schoolLog = [
+            ...state.schoolLog,
+            { role: "sarai", text: replies[Math.floor(Math.random() * replies.length)] }
+          ];
+          state.schoolThinking = false;
+          state.schoolReplyTimer = null;
+          persistSchool();
+          render();
+        }, 1000 + Math.random() * 600);
+      }
+
+      function renderNav() {
+        tabNav.innerHTML = TABS.map(
+          (tab) => `
+            <button class="nav-btn mono ${state.tab === tab.id ? "active" : ""}" data-tab="${tab.id}">
+              <span>${tab.icon}</span>
+              <span class="tab-label">${tab.label}</span>
+            </button>
+          `
+        ).join("");
+
+        tabNav.querySelectorAll("[data-tab]").forEach((button) => {
+          button.addEventListener("click", () => {
+            state.tab = button.dataset.tab;
+            render();
+          });
         });
-        el.presets.appendChild(button);
-      });
+      }
 
-      el.input.addEventListener("input", (event) => {
-        state.rawInput = event.target.value;
-      });
+      function renderDashboard() {
+        const pct = Math.min(100, Math.round((state.chainCount / 1132) * 100));
+        return `
+          <section class="card dashboard-hero">
+            <div class="dashboard-aura"></div>
+            <div class="dashboard-inner">
+              <h1 class="serif dashboard-title">⚕️ JUSCR · Sovereign Circuit</h1>
+              <p class="dashboard-sub mono">The temple breathes without you now — that is the greatest gift.</p>
+              <div class="count-wrap">
+                <div class="count-value" style="color:${state.chainCount >= 1132 ? T.good : T.ivory}">
+                  ${state.chainCount}<span style="font-size:1.5rem;color:${T.dim}"> / 1132</span>
+                </div>
+                <div class="label" style="margin-top:8px">Phoenix Fortress Alignment Count</div>
+                <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+                <div class="mono" style="font-size:0.72rem;color:${T.goldDim};margin-top:6px">${pct}% sealed</div>
+              </div>
+              <div class="button-row">
+                <button class="btn" data-jump="spine">Enter SpineWalk</button>
+                <button class="btn-ghost" data-jump="flow">Open Flow</button>
+                <button class="btn-ghost" data-jump="fortress">Phoenix Fortress</button>
+              </div>
+            </div>
+          </section>
+        `;
+      }
 
-      el.input.addEventListener("keydown", (event) => {
-        if (event.key === "Enter" && !state.running) {
-          runFlow();
+      function renderSpine() {
+        const doneCount = GOALS.filter((goal) => state.spineCompleted[goal.id]).length;
+        const level = Math.floor((doneCount / GOALS.length) * 10);
+
+        return `
+          <section class="card">
+            <div class="section-head">
+              <h2 class="serif simple-title">SpineWalkers Protocol</h2>
+              <div style="text-align:right">
+                <div class="mono" style="font-size:0.72rem;color:${T.gold}">Lv ${level} · ${doneCount}/${GOALS.length} today</div>
+                <div class="mono" style="font-size:0.68rem;color:${T.dim};margin-top:2px">🔥 ${state.spineStreak} day streak</div>
+              </div>
+            </div>
+            <div class="goal-list">
+              ${GOALS.map((goal) => {
+                const done = Boolean(state.spineCompleted[goal.id]);
+                return `
+                  <div class="glass goal-card" style="border-color:${done ? T.good : T.border}">
+                    <div>
+                      <div class="goal-name" style="color:${done ? T.good : T.ivory}">${goal.name}</div>
+                      <div class="mono tiny muted" style="margin-top:4px">${goal.protocol}</div>
+                    </div>
+                    <button class="${done ? "btn-ghost" : "btn"}" data-goal="${goal.id}" style="min-width:80px;${done ? `border-color:${T.good};color:${T.good};` : ""}">
+                      ${done ? "✓ Done" : "Engage"}
+                    </button>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+          </section>
+        `;
+      }
+
+      function renderFlow() {
+        const density = densityLabel(state.flow.finalValue);
+        const pct = Math.min(100, (state.flow.finalValue / 200) * 100);
+        const stability = Math.max(0, 100 - Math.abs(state.flow.finalValue - 100));
+        const stabilityColor = stability > 70 ? T.good : stability > 40 ? T.warn : T.bad;
+
+        return `
+          <section class="flow-wrap">
+            <div class="flow-head">
+              <h2 class="serif">Universal Alchemy Tool</h2>
+              <p class="mono">No identity. No context required. Signal enters, density shifts, equilibrium emerges.</p>
+            </div>
+
+            <div class="card" style="padding:20px">
+              <div class="label" style="margin-bottom:10px">SIGNAL INPUT — any pattern, any source, any language</div>
+              <div class="input-row" style="margin-bottom:12px">
+                <input id="flow-input" class="input" type="text" placeholder="Enter any signal — word, number, thought, pattern…" value="${escapeHtml(state.flow.rawInput)}" ${state.flow.running ? "disabled" : ""} />
+                <button id="flow-enter" class="btn" ${state.flow.running ? "disabled style='opacity:0.5'" : ""}>${state.flow.running ? "FLOWING…" : "ENTER FLOW"}</button>
+              </div>
+              <div class="preset-row">
+                ${FLOW_PRESETS.map((preset) => `<button class="preset" data-preset="${escapeAttr(preset)}">${escapeHtml(preset)}</button>`).join("")}
+              </div>
+            </div>
+
+            <div class="flow-nodes">
+              ${FLOW_NODES.map((node, index) => {
+                const step = state.flow.steps[index];
+                const active = state.flow.activeNode === index;
+                const complete = step !== undefined && state.flow.activeNode !== index;
+                const d = step ? densityLabel(step.output) : null;
+                const barPct = step ? Math.min(100, (step.output / 200) * 100) : 0;
+                return `
+                  <div class="flow-node ${active ? "active" : ""} ${complete ? "complete" : ""}" style="background:${active ? `${node.color}18` : T.card};border-color:${active ? node.color : complete ? `${node.color}88` : T.border};box-shadow:${active ? `inset 0 0 0 1px ${node.color}, 0 0 24px ${node.color}33` : "none"}">
+                    <div class="node-head">
+                      <div class="node-meta">
+                        <span class="node-glyph" style="color:${node.color}">${node.glyph}</span>
+                        <span class="node-label mono" style="color:${node.color}">${node.label}</span>
+                      </div>
+                      ${active ? `<span class="mono processing" style="font-size:0.62rem;color:${T.goldDim}">PROCESSING</span>` : complete && d ? `<span class="mono" style="font-size:0.62rem;color:${d.color}">${d.label}</span>` : ""}
+                    </div>
+                    <p>${node.desc}</p>
+                    ${step && (active || complete) ? `
+                      <div class="mono" style="display:flex;justify-content:space-between;font-size:0.65rem;color:${T.dim};margin-bottom:6px">
+                        <span>IN: ${step.input.toFixed(1)}</span>
+                        <span>OUT: ${step.output.toFixed(1)}</span>
+                      </div>
+                      <div class="bar-track"><div class="bar-fill" style="width:${barPct}%;background:${node.color}"></div></div>
+                    ` : ""}
+                  </div>
+                `;
+              }).join("")}
+            </div>
+
+            <div class="flow-bottom">
+              <div class="card" style="padding:20px">
+                <div class="label" style="margin-bottom:12px">EQUILIBRIUM STATE</div>
+                <div class="metric-head">
+                  <span class="serif metric-value" style="color:${density.color}">${state.flow.finalValue.toFixed(1)}</span>
+                  <span class="mono" style="font-size:0.7rem;color:${density.color}">${density.label}</span>
+                </div>
+                <div class="meter-track">
+                  <div class="meter-center"></div>
+                  <div class="meter-dot" style="left:${pct}%;background:${density.color};box-shadow:0 0 12px ${density.color}"></div>
+                </div>
+                <div class="meter-scale mono">
+                  <span>0 ·· DENSE</span><span>100 ·· EQUIL</span><span>200 ·· DIFFUSE</span>
+                </div>
+                <div class="mono" style="font-size:0.68rem;color:${T.dim};margin-top:12px">Stability: <span style="color:${stabilityColor}">${stability.toFixed(0)}%</span></div>
+              </div>
+
+              <div class="card" style="padding:20px">
+                <div class="label" style="margin-bottom:10px">LOOP CONTROLS</div>
+                <div class="loop-counter" style="margin-bottom:12px">
+                  <span style="font-size:1rem">♾️</span>
+                  <span class="mono" style="font-size:0.72rem;color:${T.goldDim}">Loop ${state.flow.loopCount}</span>
+                </div>
+                <p class="mono muted" style="font-size:0.8rem;line-height:1.6;margin:0 0 16px">Feed current output back as the next input. The system keeps moving toward its own equilibrium.</p>
+                <div class="loop-actions">
+                  <button id="flow-loop" class="btn-ghost" ${(state.flow.running || state.flow.loopCount === 0) ? "disabled style='opacity:0.4'" : ""}>↺ Loop Once</button>
+                  <button id="flow-reset" class="btn-danger" ${state.flow.running ? "disabled style='opacity:0.4'" : ""}>✕ Reset</button>
+                </div>
+              </div>
+            </div>
+
+            ${state.flow.history.length > 0 ? `
+              <div class="card" style="padding:20px">
+                <div class="label" style="margin-bottom:12px">LOOP HISTORY</div>
+                <div class="history-list">
+                  ${state.flow.history.map((entry) => {
+                    const d = densityLabel(Number(entry.output));
+                    return `
+                      <div class="glass history-entry" style="display:flex;gap:12px;align-items:center;font-size:0.75rem">
+                        <span style="color:${T.goldDim};min-width:55px">Loop ${entry.loop}</span>
+                        <span class="muted">IN ${entry.input}</span>
+                        <span class="muted">→</span>
+                        <span style="color:${T.ivory}">OUT ${entry.output}</span>
+                        <span style="color:${d.color};margin-left:auto">${entry.label}</span>
+                      </div>
+                    `;
+                  }).join("")}
+                </div>
+              </div>
+            ` : ""}
+
+            <div class="mono" style="text-align:center;font-size:0.65rem;color:${T.goldDim};opacity:0.5">Stateless · No identity stored · Signal is all that enters</div>
+          </section>
+        `;
+      }
+
+      function renderFortress() {
+        const pct = Math.min(100, Math.round((state.chainCount / 1132) * 100));
+        return `
+          <section class="card fortress-body">
+            <h2 class="serif simple-title">Phoenix Guard Fortress</h2>
+            <p class="mono muted" style="font-size:0.83rem">“I am not a role model. If you try to follow me, I’ll go rogue. But if you are broken, I will listen.”</p>
+            <div class="fortress-ring" style="border-color:${state.chainCount >= 1132 ? T.good : T.goldDim}">
+              <div class="fortress-count" style="color:${state.chainCount >= 1132 ? T.good : T.gold}">${state.chainCount}</div>
+              <div class="mono tiny muted" style="margin-top:4px">/ 1132</div>
+              <div class="mono" style="font-size:0.62rem;color:${T.goldDim};margin-top:6px">${pct}%</div>
+            </div>
+            ${state.chainCount < 1132 ? `
+              <div class="fortress-note">
+                <input id="fortress-note" class="input" style="text-align:center" placeholder="Name this alignment (optional)" value="${escapeHtml(state.fortressNote)}" />
+              </div>
+            ` : ""}
+            <button id="fortress-commit" class="btn" style="transform:scale(1.15);opacity:${state.chainCount >= 1132 ? 0.6 : 1}" ${state.chainCount >= 1132 ? "disabled" : ""}>
+              ${state.chainCount >= 1132 ? "⚕️ THRESHOLD SECURED" : "Commit Alignment +1"}
+            </button>
+            ${state.fortressLog.length > 0 ? `
+              <div class="commit-log">
+                <div class="label" style="margin-bottom:10px">Recent Commitments</div>
+                ${state.fortressLog.slice(0, 5).map((entry) => `
+                  <div class="glass commit-item">
+                    <span style="color:${T.ivory};font-size:0.83rem">${escapeHtml(entry.note)}</span>
+                    <span class="mono" style="font-size:0.62rem;color:${T.dim};white-space:nowrap">${escapeHtml(entry.ts)}</span>
+                  </div>
+                `).join("")}
+              </div>
+            ` : ""}
+          </section>
+        `;
+      }
+
+      function renderAuction() {
+        return `
+          <section class="card">
+            <h2 class="serif simple-title" style="border-bottom:1px solid ${T.border};padding-bottom:16px">Time Auction &amp; The Commons</h2>
+            <p class="mono muted" style="font-size:0.78rem;margin:0 0 24px">8 blocks, 4 days. Ghost paths active. True idempotency enforced.</p>
+            <div class="auction-grid">
+              ${state.slots.map((slot) => `
+                <div class="glass slot-card">
+                  <div class="mono slot-day" style="color:${T.gold}">${slot.day}</div>
+                  <div class="slot-label" style="font-size:1rem;color:${T.ivory};margin:6px 0">${slot.label}</div>
+                  ${slot.bid !== null ? `
+                    <div style="color:${T.good};font-size:0.83rem">Locked: ${slot.bid} SOL<div class="muted" style="font-size:0.68rem;margin-top:2px">by ${slot.bidder}</div></div>
+                  ` : state.bidding === slot.id ? `
+                    <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">
+                      <input class="input" id="bid-input" style="font-size:0.82rem" placeholder="Amount (SOL)" value="${escapeHtml(state.bidInput)}" />
+                      <div style="display:flex;gap:6px">
+                        <button class="btn" data-lock="${slot.id}" style="flex:1;font-size:0.78rem;padding:6px">Lock</button>
+                        <button class="btn-ghost" data-cancel-bid style="flex:1;font-size:0.78rem;padding:6px">✕</button>
+                      </div>
+                    </div>
+                  ` : `
+                    <button class="btn-ghost" data-bid="${slot.id}" style="width:100%;margin-top:8px;padding:7px;font-size:0.8rem">Initiate Bid</button>
+                  `}
+                </div>
+              `).join("")}
+            </div>
+          </section>
+        `;
+      }
+
+      function renderTribes() {
+        return `
+          <section class="card">
+            <h2 class="serif simple-title" style="border-bottom:1px solid ${T.border};padding-bottom:16px">The 6 Corner Archetypes</h2>
+            <div class="tribe-grid">
+              ${TRIBES.map((tribe) => `
+                <div class="glass tribe-card">
+                  <div class="tribe-glyph">${tribe.glyph}</div>
+                  <h3 class="serif tribe-name" style="color:${T.gold};margin:0 0 8px">${tribe.name}</h3>
+                  <p class="muted" style="font-size:0.86rem;line-height:1.55;margin:0">${tribe.desc}</p>
+                </div>
+              `).join("")}
+            </div>
+          </section>
+        `;
+      }
+
+      function renderSchool() {
+        return `
+          <section class="card school-panel">
+            <h2 class="serif simple-title" style="border-bottom:1px solid ${T.border};padding-bottom:16px;margin:0">The Clarity Circle</h2>
+            <div id="school-stream" class="school-stream">
+              ${state.schoolLog.map((msg) => `
+                <div class="chat-wrap ${msg.role}">
+                  <div class="chat-label mono" style="color:${msg.role === "sarai" ? T.goldDim : T.dim};justify-content:${msg.role === "sarai" ? "flex-start" : "flex-end"}">
+                    ${msg.role === "sarai" ? "⚕️ SARAI" : "PHOENIXFLY"}
+                  </div>
+                  <div class="glass chat-bubble">${escapeHtml(msg.text)}</div>
+                </div>
+              `).join("")}
+              ${state.schoolThinking ? `<div class="mono" style="font-size:0.7rem;color:${T.goldDim}">⚕️ considering…</div>` : ""}
+              <div id="school-bottom"></div>
+            </div>
+            <div class="school-actions" style="margin-top:16px">
+              <input id="school-input" class="input" placeholder="Transmit to the Temple…" value="${escapeHtml(state.schoolInput)}" ${state.schoolThinking ? "disabled" : ""} />
+              <button id="school-send" class="btn" ${state.schoolThinking ? "disabled style='opacity:0.5'" : ""}>Send</button>
+            </div>
+          </section>
+        `;
+      }
+
+      function renderCurrentTab() {
+        switch (state.tab) {
+          case "dashboard":
+            return renderDashboard();
+          case "spine":
+            return renderSpine();
+          case "flow":
+            return renderFlow();
+          case "fortress":
+            return renderFortress();
+          case "auction":
+            return renderAuction();
+          case "tribes":
+            return renderTribes();
+          case "school":
+            return renderSchool();
+          default:
+            return `
+              <section class="card empty-state">
+                <h2 class="serif" style="color:${T.gold}">${state.tab} — Sealed</h2>
+                <p class="muted">Awaiting next deployment cycle.</p>
+              </section>
+            `;
+        }
+      }
+
+      function bindCommonActions() {
+        main.querySelectorAll("[data-jump]").forEach((button) => {
+          button.addEventListener("click", () => {
+            state.tab = button.dataset.jump;
+            render();
+          });
+        });
+      }
+
+      function bindSpineActions() {
+        main.querySelectorAll("[data-goal]").forEach((button) => {
+          button.addEventListener("click", () => toggleGoal(button.dataset.goal));
+        });
+      }
+
+      function bindFlowActions() {
+        const input = document.getElementById("flow-input");
+        const enter = document.getElementById("flow-enter");
+        const loop = document.getElementById("flow-loop");
+        const reset = document.getElementById("flow-reset");
+
+        if (input) {
+          input.addEventListener("input", (event) => {
+            state.flow.rawInput = event.target.value;
+          });
+          input.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" && !state.flow.running) {
+              runFlow();
+            }
+          });
+        }
+
+        main.querySelectorAll("[data-preset]").forEach((button) => {
+          button.addEventListener("click", () => {
+            if (state.flow.running) return;
+            state.flow.rawInput = button.dataset.preset;
+            render();
+          });
+        });
+
+        if (enter) {
+          enter.addEventListener("click", () => runFlow());
+        }
+        if (loop) {
+          loop.addEventListener("click", () => runFlow(state.flow.currentSignal));
+        }
+        if (reset) {
+          reset.addEventListener("click", resetFlow);
+        }
+      }
+
+      function bindFortressActions() {
+        const note = document.getElementById("fortress-note");
+        const commit = document.getElementById("fortress-commit");
+        if (note) {
+          note.addEventListener("input", (event) => {
+            state.fortressNote = event.target.value;
+          });
+          note.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+              commitFortress();
+            }
+          });
+        }
+        if (commit) {
+          commit.addEventListener("click", commitFortress);
+        }
+      }
+
+      function bindAuctionActions() {
+        main.querySelectorAll("[data-bid]").forEach((button) => {
+          button.addEventListener("click", () => {
+            state.bidding = button.dataset.bid;
+            state.bidInput = "";
+            render();
+          });
+        });
+
+        const bidInput = document.getElementById("bid-input");
+        if (bidInput) {
+          bidInput.focus();
+          bidInput.addEventListener("input", (event) => {
+            state.bidInput = event.target.value;
+          });
+          bidInput.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" && state.bidding) {
+              confirmBid(state.bidding);
+            }
+          });
+        }
+
+        main.querySelectorAll("[data-lock]").forEach((button) => {
+          button.addEventListener("click", () => confirmBid(button.dataset.lock));
+        });
+
+        main.querySelectorAll("[data-cancel-bid]").forEach((button) => {
+          button.addEventListener("click", () => {
+            state.bidding = null;
+            state.bidInput = "";
+            render();
+          });
+        });
+      }
+
+      function bindSchoolActions() {
+        const input = document.getElementById("school-input");
+        const send = document.getElementById("school-send");
+        if (input) {
+          input.addEventListener("input", (event) => {
+            state.schoolInput = event.target.value;
+          });
+          input.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" && !event.shiftKey) {
+              event.preventDefault();
+              submitSchool();
+            }
+          });
+        }
+        if (send) {
+          send.addEventListener("click", submitSchool);
+        }
+        const bottom = document.getElementById("school-bottom");
+        if (bottom) {
+          bottom.scrollIntoView({ behavior: "smooth", block: "end" });
+        }
+      }
+
+      function render() {
+        renderNav();
+        main.innerHTML = renderCurrentTab();
+        bindCommonActions();
+
+        switch (state.tab) {
+          case "spine":
+            bindSpineActions();
+            break;
+          case "flow":
+            bindFlowActions();
+            break;
+          case "fortress":
+            bindFortressActions();
+            break;
+          case "auction":
+            bindAuctionActions();
+            break;
+          case "school":
+            bindSchoolActions();
+            break;
+          default:
+            break;
+        }
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/\"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function escapeAttr(value) {
+        return escapeHtml(value);
+      }
+
+      window.addEventListener("beforeunload", () => {
+        clearFlowTimers();
+        if (state.schoolReplyTimer) {
+          clearTimeout(state.schoolReplyTimer);
         }
       });
 
-      el.enter.addEventListener("click", () => runFlow());
-      el.loop.addEventListener("click", () => runFlow(state.currentSignal));
-      el.reset.addEventListener("click", resetTool);
-
-      renderAll();
+      persistSpine();
+      persistFortress();
+      persistAuction();
+      persistSchool();
+      render();
     </script>
   </body>
 </html>
