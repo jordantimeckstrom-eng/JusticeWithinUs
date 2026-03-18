@@ -1,0 +1,10 @@
+{
+  "name": "juscr-sovereign-v1.3",
+  "version": "1.3.0",
+  "private": true,
+  "scripts": {
+    "dev": "python3 -m http.server 4173",
+    "build": "node build.mjs",
+    "preview": "python3 -m http.server 4173 --directory dist"
+  }
+}

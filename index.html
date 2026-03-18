@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JUSCR Sovereign v1.3</title>
+    <style>
+      :root {
+        --bg: #081018;
+        --bg-deep: #050a10;
+        --panel: rgba(12, 22, 34, 0.78);
+        --line: rgba(255, 255, 255, 0.09);
+        --text: #f5efe2;
+        --subtext: #9fb0c4;
+        --gold: #d5aa45;
+        --gold-soft: #f1d899;
+        --teal: #6fe7dd;
+        --success: #73dd8e;
+        --warning: #f0bc64;
+        --danger: #ff8a80;
+        --shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: Georgia, 'Times New Roman', serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top, rgba(213, 170, 69, 0.18), transparent 32%),
+          radial-gradient(circle at 15% 20%, rgba(111, 231, 221, 0.12), transparent 30%),
+          linear-gradient(180deg, var(--bg) 0%, var(--bg-deep) 100%);
+      }
+      button, textarea { font: inherit; }
+      button { cursor: pointer; }
+      .app-shell {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 32px 20px 40px;
+      }
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 18px;
+      }
+      .eyebrow {
+        margin: 0 0 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-size: 0.76rem;
+        color: var(--subtext);
+      }
+      h1, h2, h3, p { margin-top: 0; }
+      .lead { color: #d9dde5; }
+      .badge, .tab, .btn, .surface {
+        border: 1px solid rgba(255,255,255,0.1);
+        background: rgba(12, 22, 34, 0.7);
+        backdrop-filter: blur(14px);
+        box-shadow: 0 18px 48px rgba(0,0,0,0.28);
+      }
+      .topbar-badges { display: flex; gap: 10px; flex-wrap: wrap; }
+      .badge {
+        border-radius: 999px;
+        padding: 10px 14px;
+        color: var(--gold-soft);
+      }
+      .tabs {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+      }
+      .tab {
+        border-radius: 14px;
+        color: var(--text);
+        padding: 10px 14px;
+      }
+      .tab.active {
+        border-color: rgba(213, 170, 69, 0.6);
+        color: var(--bg);
+        background: linear-gradient(135deg, var(--gold-soft), var(--gold));
+      }
+      .page-grid {
+        display: grid;
+        gap: 18px;
+      }
+      .two-up { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .flow-grid { grid-template-columns: 2fr 1fr; align-items: start; }
+      .flow-grid > :last-child { grid-column: 1 / -1; }
+      .section-card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        padding: 22px;
+        box-shadow: var(--shadow);
+      }
+      .section-head { margin-bottom: 18px; }
+      .bullet-list, .ordered-list { margin: 0; padding-left: 20px; }
+      .pillars-grid, .tribe-grid, .nodes-grid, .project-list, .time-list, .history-list {
+        display: grid;
+        gap: 12px;
+      }
+      .pillars-grid { list-style: none; padding: 0; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .pillars-grid li, .tribe-card, .hero-card, .node-card {
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 18px;
+        padding: 16px;
+        background: rgba(255,255,255,0.03);
+      }
+      .tribe-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .project-item, .time-slot, .history-item, .stat-card {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        border-radius: 16px;
+        padding: 14px 16px;
+      }
+      .project-item, .time-slot, .history-item, .stat-card { border: 1px solid rgba(255,255,255,0.1); background: rgba(12,22,34,0.7); box-shadow: 0 18px 48px rgba(0,0,0,0.28); }
+      .flow-controls { display: grid; grid-template-columns: 1.5fr 1fr; gap: 18px; }
+      .input-stack textarea {
+        width: 100%;
+        resize: vertical;
+        min-height: 144px;
+        background: rgba(6, 14, 22, 0.85);
+        color: var(--text);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 18px;
+        padding: 16px;
+      }
+      .flow-summary { display: grid; gap: 12px; }
+      .stat-card { flex-direction: column; }
+      .stat-card strong, .delta, .equilibrium-core span { font-family: 'Courier New', monospace; }
+      .stat-card strong { font-size: 2rem; color: var(--gold-soft); }
+      .button-row { display: flex; flex-wrap: wrap; gap: 10px; }
+      .btn {
+        padding: 12px 16px;
+        border-radius: 14px;
+        color: var(--text);
+      }
+      .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+      .btn-primary {
+        border-color: rgba(213, 170, 69, 0.6);
+        background: linear-gradient(135deg, var(--gold), #a37a1f);
+        color: var(--bg);
+        font-weight: 700;
+      }
+      .nodes-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+      .node-card { transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease; }
+      .node-card.active {
+        transform: translateY(-4px);
+        border-color: rgba(111, 231, 221, 0.75);
+        box-shadow: 0 0 0 1px rgba(111, 231, 221, 0.2), 0 20px 40px rgba(11, 82, 77, 0.24);
+      }
+      .node-card.complete { border-color: rgba(213, 170, 69, 0.35); }
+      .node-head, .node-stats, .history-metrics { display: flex; justify-content: space-between; gap: 12px; }
+      .node-detail { color: #d9dde5; min-height: 72px; }
+      .meter-track {
+        height: 10px;
+        background: rgba(255,255,255,0.08);
+        border-radius: 999px;
+        overflow: hidden;
+      }
+      .meter-fill {
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--teal), var(--gold));
+      }
+      .equilibrium-card { display: grid; place-items: center; }
+      .equilibrium-ring {
+        width: 250px;
+        height: 250px;
+        border-radius: 50%;
+        background: conic-gradient(from 180deg, rgba(111,231,221,0.2), rgba(213,170,69,0.9));
+        display: grid;
+        place-items: center;
+        position: relative;
+      }
+      .equilibrium-ring::after {
+        content: '';
+        position: absolute;
+        inset: 18px;
+        border-radius: 50%;
+        background: #0a131e;
+      }
+      .equilibrium-core {
+        position: relative;
+        z-index: 1;
+        text-align: center;
+        padding: 24px;
+      }
+      .equilibrium-core span { display: block; font-size: 2.6rem; color: var(--gold-soft); }
+      .center-text, .footer { text-align: center; }
+      .hidden { display: none; }
+      .footer { margin-top: 20px; color: var(--subtext); }
+      @media (max-width: 980px) {
+        .topbar, .flow-controls, .two-up, .flow-grid, .tribe-grid, .pillars-grid { display: grid; grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">JUSCR // Justice Within Us</p>
+          <h1>Sovereign v1.3</h1>
+          <p class="lead">Clarity is kindness. Ambiguity imposed on others is harm.</p>
+        </div>
+        <div class="topbar-badges">
+          <span class="badge" id="chain-count">Chain count 0</span>
+          <span class="badge">Reality anchor 100</span>
+        </div>
+      </header>
+
+      <nav class="tabs" aria-label="Primary" id="tabs"></nav>
+      <main id="pages"></main>
+      <footer class="footer">JUSCR // Justice Within Us · Coherent Reality · AGPL-3.0 · Sarai · PhoenixFly · Bonded</footer>
+    </div>
+
+    <script>
+      const GOALS = [
+        'Witness the incoming signal without identity tags.',
+        'Convert chaos into measurable density and visible movement.',
+        'Loop only until the field returns to equilibrium.',
+      ];
+      const PILLARS = [
+        'Signal first',
+        'Golden-ratio compression and expansion',
+        'Reality anchor at 100 equilibrium',
+        'History without surveillance',
+      ];
+      const REALITY_PROMPTS = [
+        'What is the actual signal entering the system right now?',
+        'Which part of the waveform is compression vs. resonance?',
+        'Has the system returned close enough to center to stop looping?',
+      ];
+      const TRIBES = [
+        { name: 'Witnesses', members: ['Pattern stewards', 'Signal readers'] },
+        { name: 'Builders', members: ['Interface forgers', 'Ritual operators'] },
+        { name: 'Anchors', members: ['Equilibrium keepers', 'Reality auditors'] },
+      ];
+      const PROJECTS = [
+        { title: 'Spine alignment review', status: 'Active' },
+        { title: 'Flow ritual deployment', status: 'Ready' },
+        { title: 'Time auction sync', status: 'Queued' },
+      ];
+      const CALENDAR_SLOTS = ['06:18 — Observe', '10:00 — Compress + prioritize', '13:34 — Resonance checkpoint', '16:18 — Expansion review', '21:00 — Rebalance to center'];
+      const NODES = [
+        { id: 'receive', title: 'Receive', glyph: '◉', formula: (value) => clamp(value), detail: 'Signal enters untouched. No identity. No story. Only amplitude.' },
+        { id: 'compress', title: 'Compress · 0.618', glyph: '⇣', formula: (value) => clamp(value * 0.618), detail: 'Golden-ratio compression lowers overwhelm without deleting information.' },
+        { id: 'resonate', title: 'Resonate · sine wave', glyph: '≈', formula: (value) => clamp(100 + Math.sin(value / 18) * 24 + (value - 100) * 0.18), detail: 'A sine wave reveals rhythm and phase before the field expands again.' },
+        { id: 'expand', title: 'Expand · 1.618', glyph: '⇡', formula: (value) => clamp(100 + (value - 100) * 1.618), detail: 'Golden-ratio expansion restores motion after resonance clarifies direction.' },
+        { id: 'rebalance', title: 'Rebalance · pull to 100', glyph: '◎', formula: (value) => clamp(value + (100 - value) * 0.72), detail: 'The reality anchor draws the field back toward usable coherence.' },
+      ];
+      const TABS = [
+        { id: 'dashboard', icon: '🏠', label: 'Dashboard' },
+        { id: 'spine', icon: '🦴', label: 'SpineAlign' },
+        { id: 'flow', icon: '↝', label: 'Flow' },
+        { id: 'calendar', icon: '⏳', label: 'Time Auction' },
+        { id: 'community', icon: '🤝', label: 'Community' },
+        { id: 'tribes', icon: '🜂', label: 'Tribes' },
+        { id: 'phoenix', icon: '🔥', label: 'Phoenix' },
+        { id: 'school', icon: '📚', label: 'School' },
+        { id: 'ouroboros', icon: '∞', label: 'Ouroboros' },
+      ];
+
+      const state = {
+        tab: 'flow',
+        rawInput: 'A sharp incoming signal that needs to become usable.',
+        currentSignal: 100,
+        activeNode: -1,
+        steps: [],
+        loopCount: 0,
+        running: false,
+        finalValue: 100,
+        history: [],
+        timeout: null,
+      };
+
+      function clamp(value, min = 0, max = 200) {
+        return Math.min(max, Math.max(min, Number(value.toFixed(2))));
+      }
+      function signalFromText(text) {
+        if (!text.trim()) return 100;
+        const chars = [...text];
+        const avg = chars.reduce((sum, char) => sum + char.charCodeAt(0), 0) / chars.length;
+        const punctuation = (text.match(/[!?]/g) || []).length * 6;
+        const caps = (text.match(/[A-Z]/g) || []).length * 1.7;
+        const lengthBias = Math.min(28, text.length / 4);
+        return clamp(38 + avg * 0.35 + punctuation + caps + lengthBias);
+      }
+      function densityLabel(value) {
+        if (value < 55) return 'Sparse';
+        if (value < 85) return 'Stable';
+        if (value < 115) return 'Centered';
+        if (value < 145) return 'Charged';
+        return 'Dense';
+      }
+      function runPipeline(initialSignal) {
+        return NODES.reduce((acc, node) => {
+          const input = acc.length ? acc[acc.length - 1].output : initialSignal;
+          const output = node.formula(input);
+          acc.push({ nodeId: node.id, input, output, delta: Number((output - input).toFixed(2)) });
+          return acc;
+        }, []);
+      }
+      function sectionCard(title, subtitle, content) {
+        return `<section class="section-card"><div class="section-head"><p class="eyebrow">${subtitle}</p><h2>${title}</h2></div>${content}</section>`;
+      }
+      function renderTabs() {
+        document.getElementById('tabs').innerHTML = TABS.map(item => `<button class="tab ${state.tab === item.id ? 'active' : ''}" data-tab="${item.id}"><span>${item.icon}</span> ${item.label}</button>`).join('');
+        document.querySelectorAll('[data-tab]').forEach(button => button.addEventListener('click', () => { state.tab = button.dataset.tab; render(); }));
+      }
+      function renderDashboard() {
+        return `<div class="page-grid two-up">
+          ${sectionCard('Temple dashboard', 'System overview', `<ul class="bullet-list">${GOALS.map(goal => `<li>${goal}</li>`).join('')}</ul>`)}
+          ${sectionCard('Core pillars', 'Operating frame', `<ul class="pillars-grid">${PILLARS.map(pillar => `<li>${pillar}</li>`).join('')}</ul>`)}
+          ${sectionCard('Active projects', 'Current motion', `<div class="project-list">${PROJECTS.map(project => `<div class="project-item"><span>${project.title}</span><strong>${project.status}</strong></div>`).join('')}</div>`)}
+          ${sectionCard('Reality prompts', 'Anchor questions', `<ul class="bullet-list">${REALITY_PROMPTS.map(prompt => `<li>${prompt}</li>`).join('')}</ul>`)}
+        </div>`;
+      }
+      function renderSimple(title, subtitle, body) {
+        return sectionCard(title, subtitle, `<p class="lead">${body}</p>`);
+      }
+      function renderFlow() {
+        const seededSignal = signalFromText(state.rawInput);
+        const nodes = NODES.map((node, index) => {
+          const step = state.steps[index];
+          const density = step ? densityLabel(step.output) : 'Waiting';
+          const barPct = step ? Math.min(100, (step.output / 200) * 100) : 0;
+          const deltaColor = step && step.delta >= 0 ? 'var(--success)' : 'var(--warning)';
+          return `<article class="node-card ${state.activeNode === index ? 'active' : ''} ${index < state.steps.length ? 'complete' : ''}">
+            <div class="node-head"><div><p class="eyebrow">${node.glyph} ${node.title}</p><h3>${density}</h3></div><span class="delta" style="color:${deltaColor}">${step ? `${step.delta >= 0 ? '+' : ''}${step.delta}` : '—'}</span></div>
+            <p class="node-detail">${node.detail}</p>
+            <div class="meter-track"><div class="meter-fill" style="width:${barPct}%"></div></div>
+            <div class="node-stats"><span>In: ${step ? step.input : '—'}</span><span>Out: ${step ? step.output : '—'}</span></div>
+          </article>`;
+        }).join('');
+        const history = state.history.length ? state.history.map(item => `<div class="history-item"><div><strong>${item.timestamp}</strong><p>${item.rawInput.slice(0, 70)}${item.rawInput.length > 70 ? '…' : ''}</p></div><div class="history-metrics"><span>Start ${item.startingSignal.toFixed(1)}</span><span>End ${item.finalValue.toFixed(1)}</span><span>Loop ${item.loopCount}</span></div></div>`).join('') : '<p class="lead">No loops recorded yet. Run the pipeline to create a local history trace.</p>';
+        return `<div class="flow-layout">
+          ${sectionCard('Universal Flow Pipeline', 'No identity · signal enters → density shifts → loop continues', `<div class="flow-controls"><label class="input-stack"><span class="eyebrow">Incoming signal</span><textarea id="raw-input" rows="5" placeholder="Drop any thought, event, or pressure signal here...">${state.rawInput}</textarea></label><div class="flow-summary"><div class="stat-card"><span class="eyebrow">Seeded signal</span><strong>${seededSignal.toFixed(1)}</strong></div><div class="stat-card"><span class="eyebrow">Loops completed</span><strong>${state.loopCount}</strong></div><div class="button-row"><button class="btn btn-primary surface" id="run-flow" ${state.running ? 'disabled' : ''}>${state.running ? 'Running…' : 'Run flow'}</button><button class="btn surface" id="loop-once" ${state.running ? 'disabled' : ''}>Loop once</button><button class="btn surface" id="reset-flow" ${state.running ? 'disabled' : ''}>Reset</button></div></div></div>`)}
+          <div class="page-grid flow-grid">
+            ${sectionCard('Node procession', 'Transformation path', `<div class="nodes-grid">${nodes}</div>`)}
+            ${sectionCard('Equilibrium', 'Reality anchor', `<div class="equilibrium-card"><div class="equilibrium-ring"><div class="equilibrium-core"><span>${state.finalValue.toFixed(1)}</span><small>${Math.abs(100 - state.finalValue) < 4 ? 'Equilibrium held' : Math.abs(100 - state.finalValue) < 14 ? 'Approaching center' : 'Needs another pass'}</small></div></div></div><p class="lead center-text">Distance from 100: ${Math.abs(100 - state.finalValue).toFixed(1)}</p>`)}
+            ${sectionCard('Recent loops', 'Stateless local memory', `<div class="history-list">${history}</div>`)}
+          </div>
+        </div>`;
+      }
+      function renderPage() {
+        switch (state.tab) {
+          case 'dashboard': return renderDashboard();
+          case 'spine': return sectionCard('Spine alignment', 'Posture + sequence', `<div class="hero-card"><div><h3>Bring signal into the body before the calendar or the market.</h3><p>Three breaths. One honest sentence. One priority chosen because it is real, not because it is loud.</p></div><ol class="ordered-list"><li>Observe the signal.</li><li>Name the vertebra under strain.</li><li>Realign before you act.</li></ol></div>`);
+          case 'flow': return renderFlow();
+          case 'calendar': return sectionCard('Time auction', 'Temporal bidding board', `<div class="time-list">${CALENDAR_SLOTS.map(slot => `<div class="time-slot">${slot}</div>`).join('')}</div>`);
+          case 'community': return renderSimple('Community', 'Shared coherence', 'Mutual clarity grows when people can see the same signal without the fog of status games.');
+          case 'tribes': return sectionCard('Tribes', 'Roles in motion', `<div class="tribe-grid">${TRIBES.map(tribe => `<div class="tribe-card"><h3>${tribe.name}</h3><ul class="bullet-list">${tribe.members.map(member => `<li>${member}</li>`).join('')}</ul></div>`).join('')}</div>`);
+          case 'phoenix': return renderSimple('Phoenix', 'Recovery arc', 'Every fracture can be carried into the light if the system gives it a safe, visible transform path.');
+          case 'school': return renderSimple('School', 'Curriculum', 'Teach the pattern: receive, compress, resonate, expand, rebalance. Then teach when not to loop.');
+          case 'ouroboros': return renderSimple('Ouroboros ward', 'Architecture note', 'Feedback loops are permitted only when they serve equilibrium. The loop is not the goal; coherence is.');
+          default: return '';
+        }
+      }
+      function attachFlowHandlers() {
+        const rawInput = document.getElementById('raw-input');
+        if (!rawInput) return;
+        rawInput.addEventListener('input', (event) => { state.rawInput = event.target.value; render(); });
+        document.getElementById('run-flow').addEventListener('click', () => startFlow(signalFromText(state.rawInput)));
+        document.getElementById('loop-once').addEventListener('click', () => startFlow(state.currentSignal));
+        document.getElementById('reset-flow').addEventListener('click', resetFlow);
+      }
+      function animateSteps(pipeline) {
+        state.steps = [];
+        let index = 0;
+        const tick = () => {
+          state.activeNode = index;
+          state.steps = [...state.steps, pipeline[index]];
+          render();
+          index += 1;
+          if (index < pipeline.length) {
+            state.timeout = window.setTimeout(tick, 240);
+          } else {
+            state.activeNode = -1;
+            const last = pipeline[pipeline.length - 1].output;
+            state.finalValue = last;
+            state.currentSignal = last;
+            state.loopCount += 1;
+            state.history = [{ id: Date.now(), rawInput: state.rawInput, startingSignal: pipeline[0].input, finalValue: last, loopCount: state.loopCount, timestamp: new Date().toLocaleTimeString() }, ...state.history].slice(0, 6);
+            state.running = false;
+            render();
+          }
+        };
+        tick();
+      }
+      function startFlow(signal) {
+        if (state.running) return;
+        state.running = true;
+        animateSteps(runPipeline(signal));
+      }
+      function resetFlow() {
+        window.clearTimeout(state.timeout);
+        state.currentSignal = 100;
+        state.activeNode = -1;
+        state.steps = [];
+        state.loopCount = 0;
+        state.running = false;
+        state.finalValue = 100;
+        state.history = [];
+        render();
+      }
+      function render() {
+        renderTabs();
+        document.getElementById('pages').innerHTML = renderPage();
+        if (state.tab === 'flow') attachFlowHandlers();
+      }
+
+      const chainCountKey = 'jwu-chaincount-v1';
+      const chainCount = Number(localStorage.getItem(chainCountKey) || 0) + 1;
+      localStorage.setItem(chainCountKey, String(chainCount));
+      document.getElementById('chain-count').textContent = `Chain count ${chainCount}`;
+      render();
+    </script>
+  </body>
+</html>
