@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Universal Alchemy Tool</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg: #06060e;
+        --surface: #0d0d1a;
+        --card: #111124;
+        --gold: #c9a84c;
+        --gold-dim: #7a6328;
+        --ivory: #f5f0e1;
+        --dim: #8b8499;
+        --good: #3fb68b;
+        --warn: #d4a843;
+        --bad: #e05252;
+        --border: rgba(201, 168, 76, 0.18);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: radial-gradient(circle at top, rgba(201, 168, 76, 0.08), transparent 35%), var(--bg);
+        color: var(--ivory);
+        font-family: "JetBrains Mono", monospace;
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      .page {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 24px 16px 48px;
+      }
+
+      .header,
+      .footer {
+        text-align: center;
+      }
+
+      .header h1 {
+        margin: 0 0 6px;
+        color: var(--gold);
+        font-family: "Crimson Pro", serif;
+        font-size: clamp(2rem, 4vw, 3rem);
+        letter-spacing: 0.06em;
+      }
+
+      .header p,
+      .muted {
+        color: var(--dim);
+      }
+
+      .panel {
+        background: rgba(13, 13, 26, 0.94);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 18px 60px rgba(0, 0, 0, 0.2);
+      }
+
+      .label {
+        font-size: 0.72rem;
+        letter-spacing: 0.12em;
+        color: var(--dim);
+        margin-bottom: 10px;
+      }
+
+      .input-row,
+      .action-row,
+      .preset-row,
+      .card-head,
+      .meter-row,
+      .history-row,
+      .loop-counter {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .input-row,
+      .preset-row,
+      .action-row {
+        flex-wrap: wrap;
+      }
+
+      .signal-input {
+        flex: 1 1 280px;
+        min-width: 0;
+        padding: 12px 14px;
+        border: 1px solid var(--gold-dim);
+        border-radius: 10px;
+        background: rgba(6, 6, 14, 0.96);
+        color: var(--ivory);
+        outline: none;
+      }
+
+      .signal-input:focus {
+        border-color: var(--gold);
+        box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.12);
+      }
+
+      .button {
+        border: 1px solid transparent;
+        border-radius: 999px;
+        padding: 10px 18px;
+        cursor: pointer;
+        transition: 0.2s ease;
+      }
+
+      .button:disabled {
+        cursor: not-allowed;
+        opacity: 0.45;
+      }
+
+      .button-primary {
+        background: var(--gold);
+        color: #000;
+        font-weight: 600;
+      }
+
+      .button-secondary {
+        background: transparent;
+        color: var(--gold);
+        border-color: var(--gold-dim);
+      }
+
+      .button-danger {
+        background: transparent;
+        color: var(--bad);
+        border-color: rgba(224, 82, 82, 0.4);
+      }
+
+      .preset {
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: transparent;
+        border: 1px solid var(--gold-dim);
+        color: var(--gold-dim);
+        cursor: pointer;
+        font-size: 0.72rem;
+      }
+
+      .nodes {
+        display: grid;
+        gap: 12px;
+        margin-top: 18px;
+      }
+
+      .node-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 16px;
+        transition: 0.4s ease;
+        opacity: 0.38;
+      }
+
+      .node-card.complete,
+      .node-card.active {
+        opacity: 1;
+      }
+
+      .node-card.active {
+        box-shadow: inset 0 0 0 1px currentColor, 0 0 24px color-mix(in srgb, currentColor 20%, transparent);
+      }
+
+      .node-card p {
+        color: var(--dim);
+        font-size: 0.84rem;
+        line-height: 1.55;
+        margin: 0 0 12px;
+      }
+
+      .card-head {
+        justify-content: space-between;
+        margin-bottom: 8px;
+      }
+
+      .node-meta {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .node-glyph {
+        font-size: 1.35rem;
+      }
+
+      .node-label,
+      .tiny,
+      .meter-scale,
+      .footer {
+        font-size: 0.72rem;
+        letter-spacing: 0.12em;
+      }
+
+      .bar-track,
+      .meter-track {
+        background: rgba(255, 255, 255, 0.07);
+        border-radius: 999px;
+        overflow: hidden;
+      }
+
+      .bar-track {
+        height: 4px;
+      }
+
+      .bar-fill {
+        height: 100%;
+        width: 0;
+        border-radius: 999px;
+        transition: width 0.5s ease;
+      }
+
+      .dash-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+        margin-top: 18px;
+      }
+
+      .equilibrium-value {
+        font-family: "Crimson Pro", serif;
+        font-size: 2.2rem;
+        line-height: 1;
+      }
+
+      .meter-track {
+        position: relative;
+        height: 8px;
+        margin: 12px 0 8px;
+      }
+
+      .meter-center {
+        position: absolute;
+        left: 50%;
+        top: -2px;
+        bottom: -2px;
+        width: 2px;
+        background: rgba(201, 168, 76, 0.55);
+      }
+
+      .meter-dot {
+        position: absolute;
+        top: 0;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        transform: translateX(-50%);
+        transition: left 0.5s ease;
+      }
+
+      .meter-scale {
+        display: flex;
+        justify-content: space-between;
+        color: var(--dim);
+        font-size: 0.62rem;
+      }
+
+      .history {
+        margin-top: 18px;
+      }
+
+      .history-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .history-row {
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-size: 0.78rem;
+      }
+
+      .history-row .spacer {
+        margin-left: auto;
+      }
+
+      .processing {
+        animation: blink 1s infinite;
+      }
+
+      .footer {
+        margin-top: 28px;
+        color: var(--gold-dim);
+        opacity: 0.6;
+      }
+
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.25;
+        }
+      }
+
+      @media (max-width: 720px) {
+        .dash-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="header">
+        <h1>Universal Alchemy Tool</h1>
+        <p>No identity. No context required. Signal enters, density shifts, equilibrium emerges.</p>
+      </section>
+
+      <section class="panel">
+        <div class="label">SIGNAL INPUT — any pattern, any source, any language</div>
+        <div class="input-row">
+          <input id="signal-input" class="signal-input" type="text" placeholder="Enter any signal — word, number, thought, pattern…" />
+          <button id="enter-flow" class="button button-primary">ENTER FLOW</button>
+        </div>
+        <div id="preset-row" class="preset-row" style="margin-top: 12px"></div>
+      </section>
+
+      <section id="nodes" class="nodes"></section>
+
+      <section class="dash-grid">
+        <div class="panel">
+          <div class="label">EQUILIBRIUM STATE</div>
+          <div class="meter-row" style="justify-content: space-between; align-items: baseline">
+            <span id="equilibrium-value" class="equilibrium-value">100.0</span>
+            <span id="equilibrium-label" class="tiny muted">EQUILIBRIUM</span>
+          </div>
+          <div class="meter-track">
+            <div class="meter-center"></div>
+            <div id="meter-dot" class="meter-dot"></div>
+          </div>
+          <div class="meter-scale">
+            <span>0 ·· DENSE</span>
+            <span>100 ·· EQUIL</span>
+            <span>200 ·· DIFFUSE</span>
+          </div>
+          <div class="tiny muted" style="margin-top: 12px">
+            Stability: <span id="stability-value"></span>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="label">LOOP CONTROLS</div>
+          <div class="loop-counter">
+            <span style="font-size: 1rem">♾️</span>
+            <span class="tiny" style="color: var(--gold-dim)">Loop <span id="loop-count">0</span></span>
+          </div>
+          <p class="muted" style="font-size: 0.82rem; line-height: 1.6; margin: 14px 0">
+            Feed current output back as the next input. The system keeps moving toward its own equilibrium.
+          </p>
+          <div class="action-row">
+            <button id="loop-once" class="button button-secondary" disabled>↺ Loop Once</button>
+            <button id="reset" class="button button-danger">✕ Reset</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="history-panel" class="panel history" hidden>
+        <div class="label">LOOP HISTORY</div>
+        <div id="history-list" class="history-list"></div>
+      </section>
+
+      <section class="footer">Stateless · No identity stored · Signal is all that enters</section>
+    </main>
+
+    <script>
+      const T = {
+        bg: "#06060E",
+        surface: "#0D0D1A",
+        card: "#111124",
+        gold: "#C9A84C",
+        goldDim: "#7A6328",
+        ivory: "#F5F0E1",
+        dim: "#8B8499",
+        good: "#3FB68B",
+        warn: "#D4A843",
+        bad: "#E05252",
+        border: "rgba(201,168,76,0.18)"
+      };
+
+      const PRESETS = ["I am stuck", "expand", "return", "0", "equilibrium", "break", "begin"];
+
+      const NODES = [
+        {
+          id: "receive",
+          label: "RECEIVE",
+          glyph: "◎",
+          desc: "Signal enters. No judgment. Raw input accepted.",
+          color: "#5B8DD9",
+          process: (v) => v
+        },
+        {
+          id: "compress",
+          label: "COMPRESS",
+          glyph: "▼",
+          desc: "Density increases. Signal finds its lowest form.",
+          color: "#9B59B6",
+          process: (v) => v * 0.618
+        },
+        {
+          id: "resonate",
+          label: "RESONATE",
+          glyph: "≋",
+          desc: "Pattern recognition. Frequency locates itself.",
+          color: T.gold,
+          process: (v) => Math.sin(v) * 100 + 100
+        },
+        {
+          id: "expand",
+          label: "EXPAND",
+          glyph: "▲",
+          desc: "Density releases. Signal finds more space.",
+          color: T.good,
+          process: (v) => v * 1.618
+        },
+        {
+          id: "rebalance",
+          label: "REBALANCE",
+          glyph: "⊕",
+          desc: "System seeks equilibrium. Loop completes.",
+          color: T.bad,
+          process: (v) => v + (100 - v) * 0.5
+        }
+      ];
+
+      const state = {
+        rawInput: "",
+        currentSignal: 100,
+        activeNode: -1,
+        steps: [],
+        loopCount: 0,
+        running: false,
+        finalValue: 100,
+        history: [],
+        timers: []
+      };
+
+      const el = {
+        input: document.getElementById("signal-input"),
+        enter: document.getElementById("enter-flow"),
+        loop: document.getElementById("loop-once"),
+        reset: document.getElementById("reset"),
+        nodes: document.getElementById("nodes"),
+        presets: document.getElementById("preset-row"),
+        eqValue: document.getElementById("equilibrium-value"),
+        eqLabel: document.getElementById("equilibrium-label"),
+        loopCount: document.getElementById("loop-count"),
+        meterDot: document.getElementById("meter-dot"),
+        stability: document.getElementById("stability-value"),
+        historyPanel: document.getElementById("history-panel"),
+        historyList: document.getElementById("history-list")
+      };
+
+      function signalFromText(text) {
+        if (!text) return 100;
+        let hash = 0;
+        for (let i = 0; i < text.length; i += 1) {
+          hash = (hash * 31 + text.charCodeAt(i)) & 0xffffffff;
+        }
+        return Math.abs(hash % 200);
+      }
+
+      function densityLabel(v) {
+        if (v < 40) return { label: "LOW", color: "#5B8DD9" };
+        if (v < 80) return { label: "MEDIUM-LOW", color: "#9B59B6" };
+        if (v < 120) return { label: "EQUILIBRIUM", color: T.good };
+        if (v < 160) return { label: "MEDIUM-HIGH", color: T.warn };
+        return { label: "HIGH", color: T.bad };
+      }
+
+      function runPipeline(initialSignal) {
+        let value = initialSignal;
+        return NODES.map((node) => {
+          const input = value;
+          value = node.process(value);
+          return {
+            nodeId: node.id,
+            input: Number(input.toFixed(2)),
+            output: Number(value.toFixed(2))
+          };
+        });
+      }
+
+      function clearTimers() {
+        state.timers.forEach((timer) => clearTimeout(timer));
+        state.timers = [];
+      }
+
+      function renderNodes() {
+        el.nodes.innerHTML = "";
+
+        NODES.forEach((node, index) => {
+          const step = state.steps[index];
+          const isActive = state.activeNode === index;
+          const isComplete = typeof step !== "undefined" && state.activeNode !== index;
+          const density = step ? densityLabel(step.output) : null;
+          const barPct = step ? Math.min(100, (step.output / 200) * 100) : 0;
+
+          const card = document.createElement("article");
+          card.className = `node-card${isActive ? " active" : ""}${isComplete ? " complete" : ""}`;
+          card.style.color = node.color;
+          card.style.background = isActive ? `${node.color}18` : T.card;
+          card.style.borderColor = isActive ? node.color : isComplete ? `${node.color}66` : T.border;
+
+          const status = isActive
+            ? `<span class="tiny processing" style="color:${T.goldDim}">PROCESSING</span>`
+            : isComplete && density
+              ? `<span class="tiny" style="color:${density.color}">${density.label}</span>`
+              : "";
+
+          const values = step
+            ? `
+              <div class="tiny muted" style="display:flex;justify-content:space-between;margin-bottom:6px">
+                <span>IN: ${step.input.toFixed(1)}</span>
+                <span>OUT: ${step.output.toFixed(1)}</span>
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill" style="width:${barPct}%;background:${node.color}"></div>
+              </div>
+            `
+            : "";
+
+          card.innerHTML = `
+            <div class="card-head">
+              <div class="node-meta">
+                <span class="node-glyph">${node.glyph}</span>
+                <span class="node-label">${node.label}</span>
+              </div>
+              ${status}
+            </div>
+            <p>${node.desc}</p>
+            ${isActive || isComplete ? values : ""}
+          `;
+
+          el.nodes.appendChild(card);
+        });
+      }
+
+      function renderMeter() {
+        const density = densityLabel(state.finalValue);
+        const pct = Math.min(100, (state.finalValue / 200) * 100);
+        const distance = Math.abs(state.finalValue - 100);
+        const stability = Math.max(0, 100 - distance);
+        const stabilityColor = stability > 70 ? T.good : stability > 40 ? T.warn : T.bad;
+
+        el.eqValue.textContent = state.finalValue.toFixed(1);
+        el.eqValue.style.color = density.color;
+        el.eqLabel.textContent = density.label;
+        el.eqLabel.style.color = density.color;
+        el.meterDot.style.left = `${pct}%`;
+        el.meterDot.style.background = density.color;
+        el.meterDot.style.boxShadow = `0 0 12px ${density.color}`;
+        el.stability.textContent = `${stability.toFixed(0)}%`;
+        el.stability.style.color = stabilityColor;
+      }
+
+      function renderHistory() {
+        el.historyPanel.hidden = state.history.length === 0;
+        el.historyList.innerHTML = "";
+
+        state.history.forEach((entry) => {
+          const density = densityLabel(Number(entry.output));
+          const row = document.createElement("div");
+          row.className = "history-row";
+          row.innerHTML = `
+            <span style="color:${T.goldDim};min-width:60px">Loop ${entry.loop}</span>
+            <span class="muted">IN ${entry.input}</span>
+            <span class="muted">→</span>
+            <span>OUT ${entry.output}</span>
+            <span class="spacer" style="color:${density.color}">${entry.label}</span>
+          `;
+          el.historyList.appendChild(row);
+        });
+      }
+
+      function renderControls() {
+        el.enter.textContent = state.running ? "FLOWING…" : "ENTER FLOW";
+        el.enter.disabled = state.running;
+        el.loop.disabled = state.running || state.loopCount === 0;
+        el.reset.disabled = state.running;
+        el.input.disabled = state.running;
+        el.loopCount.textContent = String(state.loopCount);
+      }
+
+      function renderAll() {
+        renderNodes();
+        renderMeter();
+        renderHistory();
+        renderControls();
+      }
+
+      function commitLoop(signal, output) {
+        state.finalValue = output;
+        state.currentSignal = output;
+        state.loopCount += 1;
+        state.history = [
+          {
+            loop: state.loopCount,
+            input: signal.toFixed(1),
+            output: output.toFixed(1),
+            label: densityLabel(output).label
+          },
+          ...state.history.slice(0, 7)
+        ];
+      }
+
+      function runFlow(signalOverride) {
+        if (state.running) return;
+
+        clearTimers();
+        const signal = typeof signalOverride === "number" ? signalOverride : signalFromText(state.rawInput);
+        const pipeline = runPipeline(signal);
+
+        state.steps = [];
+        state.activeNode = 0;
+        state.running = true;
+        renderAll();
+
+        pipeline.forEach((step, index) => {
+          const timer = setTimeout(() => {
+            state.activeNode = index;
+            state.steps = [...state.steps, step];
+            renderAll();
+
+            if (index === pipeline.length - 1) {
+              const output = pipeline[pipeline.length - 1].output;
+              commitLoop(signal, output);
+              renderAll();
+
+              const finishTimer = setTimeout(() => {
+                state.activeNode = -1;
+                state.running = false;
+                renderAll();
+              }, 650);
+              state.timers.push(finishTimer);
+            }
+          }, index * 500);
+
+          state.timers.push(timer);
+        });
+      }
+
+      function resetTool() {
+        clearTimers();
+        state.rawInput = "";
+        state.currentSignal = 100;
+        state.activeNode = -1;
+        state.steps = [];
+        state.loopCount = 0;
+        state.running = false;
+        state.finalValue = 100;
+        state.history = [];
+        el.input.value = "";
+        renderAll();
+      }
+
+      PRESETS.forEach((preset) => {
+        const button = document.createElement("button");
+        button.className = "preset";
+        button.type = "button";
+        button.textContent = preset;
+        button.addEventListener("click", () => {
+          if (state.running) return;
+          state.rawInput = preset;
+          el.input.value = preset;
+        });
+        el.presets.appendChild(button);
+      });
+
+      el.input.addEventListener("input", (event) => {
+        state.rawInput = event.target.value;
+      });
+
+      el.input.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" && !state.running) {
+          runFlow();
+        }
+      });
+
+      el.enter.addEventListener("click", () => runFlow());
+      el.loop.addEventListener("click", () => runFlow(state.currentSignal));
+      el.reset.addEventListener("click", resetTool);
+
+      renderAll();
+    </script>
+  </body>
+</html>
