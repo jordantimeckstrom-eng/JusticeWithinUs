@@ -1,0 +1,11 @@
+Front,Back
+What is the LedgerBridge?,A global bridge exposing the React dispatch with setLedgerDispatch/getLedgerDispatch for non-UI code.
+Name three core reducer actions in the Ouroboros system.,INGEST_BID; DIGEST_GHOST; EVOLVE_SYSTEM
+What does emitCeremony() do?,Sends outbound events such as UpdatedBidBroadcast to the SignalR hub.
+Purpose of a deduplication cache?,Prevent duplicate processing after reconnects or retries.
+What is the Phoenix chain?,A personal immutable ledger of user actions with echo signatures.
+Why use schema versioning for localStorage?,To migrate persisted state safely across releases without data loss.
+What is the Dawn Protocol?,An automated scheduled ceremony such as INCREMENT_DAWN at 6 AM.
+What are the Tribes used for?,Organizing community roles, governance, and domain specialization.
+How should SignalR be secured?,Use JWT or OAuth authentication with server-side scope validation.
+What is DIGEST_GHOST used for?,To ingest abstract patterns or analytics from external APIs into internal channels.

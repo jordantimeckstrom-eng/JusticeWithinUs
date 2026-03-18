@@ -1,0 +1,11 @@
+Question,OptionA,OptionB,OptionC,OptionD,Answer
+Which API exposes the global dispatch for non-React code?,getGlobalState(),setLedgerDispatch()/getLedgerDispatch(),useContextBridge(),dispatchGlobal(),setLedgerDispatch()/getLedgerDispatch()
+Which event is emitted when a bid is updated?,NewBid,BidUpdate,UpdatedBidBroadcast,BidSync,UpdatedBidBroadcast
+Recommended reconnection strategy for SignalR?,No reconnection,withAutomaticReconnect(),Manual reconnect only,Polling every second,withAutomaticReconnect()
+Which reducer action introduces external analytic patterns?,INGEST_BID,DIGEST_GHOST,EVOLVE_SYSTEM,INCREMENT_DAWN,DIGEST_GHOST
+Why keep a deduplication cache?,Speed up rendering,Prevent duplicate processing,Store user preferences,Encrypt exports,Prevent duplicate processing
+Primary purpose of the Phoenix chain?,Real-time chat,Personal immutable ledger,Image storage,Authentication,Personal immutable ledger
+Which storage strategy preserves user sovereignty?,Overwrite localStorage,Schema versioning + migration,Clear storage on first load,Store everything server-side,Schema versioning + migration
+Safe time to call getLedgerDispatch()?,Before LedgerProvider mounts,After setLedgerDispatch is called,At import time,In uninitialized serverless function,After setLedgerDispatch is called
+What should emitCeremony() do when connection not ready?,Throw and crash,Queue and warn,Drop silently,Retry infinitely,Queue and warn
+Which tribe focuses on somatic health?,Golden Thread,Phoenix Guard,Spine Walkers,Sovereign Tide,Spine Walkers
