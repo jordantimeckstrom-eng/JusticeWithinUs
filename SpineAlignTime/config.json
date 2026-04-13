@@ -1,0 +1,20 @@
+{
+  "goals": [
+    "Cervical alignment",
+    "Thoracic openness",
+    "Lumbar stability",
+    "Hip symmetry",
+    "Shoulder release",
+    "Breath depth",
+    "Posture hold"
+  ],
+  "pillars": [
+    { "key": "sleep", "label": "Sleep 7h+", "weight": 2 },
+    { "key": "hydration", "label": "Hydration", "weight": 1.5 },
+    { "key": "mobility", "label": "Mobility", "weight": 2 },
+    { "key": "strength", "label": "Strength", "weight": 1.5 },
+    { "key": "breath", "label": "Breathwork", "weight": 1 },
+    { "key": "screen_hygiene", "label": "Screen Hygiene", "weight": 1 },
+    { "key": "mindset", "label": "Mindset", "weight": 1 }
+  ]
+}
