@@ -1,0 +1,32 @@
+{
+  "goals": [
+    {
+      "id": "G1",
+      "name": "Expand Project Knowledge",
+      "description": "Continuously gather and refine knowledge for all Odin projects",
+      "priority": 1,
+      "status": "active"
+    },
+    {
+      "id": "G2",
+      "name": "Improve System Intelligence",
+      "description": "Enhance reasoning, memory, and response quality over time",
+      "priority": 1,
+      "status": "active"
+    },
+    {
+      "id": "G3",
+      "name": "Maintain System Health",
+      "description": "Detect, diagnose, and fix errors automatically",
+      "priority": 2,
+      "status": "active"
+    },
+    {
+      "id": "G4",
+      "name": "Optimize Multi-Project Coordination",
+      "description": "Improve orchestration across multiple Odin projects",
+      "priority": 2,
+      "status": "active"
+    }
+  ]
+}
