@@ -1,0 +1,14 @@
+{
+  "steps": [
+    {
+      "tool": "get_projects"
+    },
+    {
+      "action": "loop_projects"
+    },
+    {
+      "tool": "odin_chat",
+      "input": "Run task across each project"
+    }
+  ]
+}
