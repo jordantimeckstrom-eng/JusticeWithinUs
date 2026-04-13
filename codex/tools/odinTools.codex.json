@@ -1,0 +1,9 @@
+{
+  "tools": [
+    {
+      "name": "get_projects",
+      "description": "Fetch all Odin projects",
+      "handler": "tools/odin/getProjects.js"
+    }
+  ]
+}
