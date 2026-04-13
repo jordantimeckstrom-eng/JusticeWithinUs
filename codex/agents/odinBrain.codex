@@ -1,0 +1,5 @@
+Step 1: Ensure active_project_id exists
+Step 2: Accept user input
+Step 3: Call "odin_chat" with active_project_id
+Step 4: Store response in memory
+Step 5: Return response
