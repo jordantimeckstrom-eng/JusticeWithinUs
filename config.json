@@ -1,0 +1,30 @@
+{
+  "whatWorkedDatabase": {
+    "posture": [
+      "Chin tuck protocol x3 sets",
+      "Thoracic extension before work blocks"
+    ],
+    "mobility": [
+      "10-minute hip opener sequence",
+      "Ankles + hamstrings reset before lift"
+    ],
+    "strength": [
+      "RPE 6-7 tempo work gives stable compliance",
+      "Shorter sessions increase streak consistency"
+    ]
+  },
+  "pillars": [
+    { "key": "posture", "label": "Posture", "weight": 0.4, "target": 90, "unit": "%", "score": 72 },
+    { "key": "mobility", "label": "Mobility", "weight": 0.3, "target": 45, "unit": "mins", "score": 31 },
+    { "key": "strength", "label": "Strength", "weight": 0.3, "target": 4, "unit": "sessions", "score": 3 }
+  ],
+  "history": [
+    { "day": "Mon", "score": 86, "protocol": "Chin tuck + desk timer", "metrics": "Pain 2/10, upright blocks 5" },
+    { "day": "Tue", "score": 68, "protocol": "Skipped mid-day walk", "metrics": "Pain 4/10, mobility only 10m" },
+    { "day": "Wed", "score": 73, "protocol": "Thoracic opener + dead bug", "metrics": "Pain 3/10, focus stable" },
+    { "day": "Thu", "score": 64, "protocol": "Late training", "metrics": "Pain 5/10, sleep 5.5h" },
+    { "day": "Fri", "score": 81, "protocol": "Band activation + checklist", "metrics": "Pain 2/10, sessions on time" },
+    { "day": "Sat", "score": 77, "protocol": "Walk + mobility", "metrics": "Pain 3/10, good adherence" },
+    { "day": "Sun", "score": 70, "protocol": "Light reset only", "metrics": "Pain 3/10, low volume" }
+  ]
+}
