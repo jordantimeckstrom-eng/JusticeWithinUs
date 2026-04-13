@@ -1,0 +1,12 @@
+{
+  "trigger": "on_commit",
+  "steps": [
+    {
+      "action": "read_commit"
+    },
+    {
+      "tool": "odin_chat",
+      "input": "Summarize and store this commit in project memory"
+    }
+  ]
+}
