@@ -1,0 +1,16 @@
+{
+  "name": "Initialize Odin Context",
+  "steps": [
+    {
+      "tool": "get_projects"
+    },
+    {
+      "action": "select_first",
+      "output": "project_id"
+    },
+    {
+      "action": "store",
+      "key": "active_project_id"
+    }
+  ]
+}
