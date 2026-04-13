@@ -1,0 +1,174 @@
+name: pheonixFlyOn
+
+on:
+  workflow_dispatch:
+
+jobs:
+  consecrate-phoenix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Materialize phoenix payload
+        shell: bash
+        run: |
+          mkdir -p generated
+
+          cat > generated/phoenix_fortress_app.py <<'PY'
+          import os
+          import hashlib
+          from datetime import datetime, timedelta
+          from flask import Flask, render_template_string
+          from flask_socketio import SocketIO, emit
+          import sqlite3
+
+          app = Flask(__name__)
+          socketio = SocketIO(app, cors_allowed_origins="*")
+
+          class UserStateTracker:
+              def __init__(self):
+                  self.prev_realm = None
+                  self.friction_buffer = []
+                  self.trickster_flags = 0
+
+              def update_and_compute(self, raw_ping, tongue, sender):
+                  realm_tension = len(raw_ping) / 100.0
+                  cross_friction = abs(hash(tongue) % 100) / 50.0 if self.prev_realm else 0.0
+                  trickster_index = 1.0 if "echo" in raw_ping.lower() or "pause" in raw_ping.lower() else 0.0
+
+                  self.prev_realm = tongue
+                  self.friction_buffer.append(cross_friction)
+                  if trickster_index > 0:
+                      self.trickster_flags += 1
+
+                  return realm_tension, cross_friction, trickster_index
+
+          class SovereignChain:
+              def __init__(self, socketio=None):
+                  self.socketio = socketio
+                  self.chain = []
+                  self.choice_count = 0
+                  self.creative_block_duration = timedelta(hours=3)
+                  self.btc_equiv = 1
+                  self.max_chain_choices = 1132
+
+                  self.glyph_path = "avenue/glyph.raw.png"
+                  self.phoenix_path = "avenue/phoenix_symbol.raw.png"
+
+                  self.glyph_seal = self._compute_seal(self.glyph_path, "GLYPH_NOT_FOUND")
+                  self.phoenix_seal = self._compute_seal(self.phoenix_path, "PHOENIX_NOT_FOUND")
+
+                  seal_data = (
+                      f"Sovereign Origin: Phoenix Awakens | "
+                      f"Trinity Glyph Seal: {self.glyph_seal} | "
+                      f"Phoenix Rebirth Seal: {self.phoenix_seal}"
+                  )
+                  self.genesis_block = self._create_block(seal_data, "0")
+                  self.chain.append(self.genesis_block)
+
+              def _compute_seal(self, path, fallback):
+                  if os.path.exists(path):
+                      with open(path, "rb") as f:
+                          return hashlib.sha256(f.read()).hexdigest()
+                  return fallback
+
+              def _create_block(self, data, previous_hash):
+                  return {
+                      "index": len(self.chain) + 1,
+                      "timestamp": str(datetime.now()),
+                      "data": data,
+                      "previous_hash": previous_hash,
+                      "hash": hashlib.sha256((data + previous_hash).encode()).hexdigest(),
+                  }
+
+              def add_choice(self, action):
+                  previous_hash = self.chain[-1]["hash"]
+                  new_block = self._create_block(action, previous_hash)
+                  self.chain.append(new_block)
+                  self.choice_count += 1
+
+                  if self.socketio:
+                      self.socketio.emit(
+                          "chain_update",
+                          {
+                              "choice_count": self.choice_count,
+                              "remaining": self.max_chain_choices - self.choice_count,
+                              "glyph_seal": self.glyph_seal,
+                              "phoenix_seal": self.phoenix_seal,
+                              "latest_block": new_block,
+                          },
+                      )
+
+          tracker = UserStateTracker()
+          chain = SovereignChain(socketio=socketio)
+
+          conn = sqlite3.connect("seamecho.db", check_same_thread=False)
+          c = conn.cursor()
+          c.execute(
+              """CREATE TABLE IF NOT EXISTS pings
+                       (time TEXT, sender TEXT, raw TEXT, tongue TEXT,
+                        realm_tension REAL, cross_friction REAL, trickster_index REAL)"""
+          )
+          conn.commit()
+
+          if __name__ == "__main__":
+              socketio.run(app, host="0.0.0.0", port=5000, debug=False)
+          PY
+
+          cat > generated/phoenix-scream-monitor.ts <<'TS'
+          import * as anchor from "@coral-xyz/anchor";
+          import { Connection, PublicKey } from "@solana/web3.js";
+          import { exec } from "child_process";
+
+          const PROGRAM_ID = new PublicKey("TiMeFUXyR9nTgmiiQgx3wH2qzoyMiY5G4seySXMA9pP");
+          const RPC_ENDPOINTS = {
+            helius: "https://mainnet.helius-rpc.com/?api-key=YOUR_HELIUS_KEY",
+            triton: "https://api.mainnet-beta.solana.com",
+            quicknode: "https://your-endpoint.solana-mainnet.quiknode.pro/YOUR_KEY/",
+          };
+          const NETWORK = process.env.RPC_URL || RPC_ENDPOINTS.triton;
+
+          async function watch() {
+            const connection = new Connection(NETWORK, { commitment: "confirmed" });
+            await connection.getSlot();
+            connection.onLogs(PROGRAM_ID, async (logs) => {
+              if (logs.err) return;
+              const signature = logs.signature;
+              console.log(`https://solana.fm/tx/${signature}`);
+            }, "confirmed");
+          }
+
+          watch().catch((err) => {
+            console.error("THE MONITOR HAS FALLEN INTO THE VOID", err);
+            process.exit(1);
+          });
+          TS
+
+          cat > generated/phoenix-shield.html <<'HTML'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Phoenix Shield</title>
+            <style>body{background:#000;color:#0ff;font-family:monospace;padding:20px;text-align:center}</style>
+          </head>
+          <body>
+            <h1>🔥 PHOENIX SHIELD ACTIVE</h1>
+            <p id="status">Ghost Protocol</p>
+          </body>
+          </html>
+          HTML
+
+          cat > generated/pheonixFlyOn-notes.sh <<'SH'
+          export HELIUS_KEY=cccc1234-5678-abcd-efgh-901234567890
+          node phoenix-scream-monitor.js
+
+          export RPC_URL=https://ash24.nodes.rpcpool.com
+          node phoenix-scream-monitor.js
+          SH
+
+      - name: Show generated files
+        run: |
+          find generated -maxdepth 1 -type f -print
