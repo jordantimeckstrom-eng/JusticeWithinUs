@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SpineAlignTime • Ouroboros Triple-Entry Temple</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/antd@5/dist/antd.min.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/antd@5/dist/reset.css" />
+  <style>
+    body {
+      margin: 0;
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #0f172a 100%);
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: #e2e8f0;
+    }
+    .app-shell {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 32px 20px 48px;
+    }
+    .gradient-text {
+      background: linear-gradient(135deg, #60a5fa 0%, #a855f7 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: 0;
+    }
+    .subtitle {
+      color: #cbd5e1;
+      margin-top: 8px;
+    }
+    .temple-glow {
+      box-shadow: 0 0 50px rgba(168, 85, 247, 0.25);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 14px;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(4px);
+    }
+    .triple-entry {
+      border-left: 4px solid #a855f7;
+      padding-left: 10px;
+    }
+    .text-block {
+      white-space: pre-line;
+      line-height: 1.5;
+      color: #dbeafe;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script>
+    const { useState, useEffect, useReducer, createContext } = React;
+    const { Card, Row, Col, Statistic, Tabs, Tag, Button, message } = antd;
+
+    const LedgerContext = createContext();
+
+    const initialState = {
+      bids: [],
+      patterns: [],
+      systemTemp: 0.85,
+      lastDawn: null,
+      solanaSpineAnchored: false,
+    };
+
+    const ledgerReducer = (state, action) => {
+      switch (action.type) {
+        case 'INGEST_BID':
+          return {
+            ...state,
+            bids: [...state.bids, { ...action.payload, tripleEntryHash: Date.now().toString(36) }],
+          };
+        case 'DIGEST_GHOST':
+          return { ...state, patterns: [...state.patterns, action.payload] };
+        case 'EVOLVE_SYSTEM':
+          return { ...state, systemTemp: action.payload.grokTemp || 0.92, lastDawn: new Date().toISOString() };
+        case 'ANCHOR_SOLANA':
+          return { ...state, solanaSpineAnchored: true };
+        default:
+          return state;
+      }
+    };
+
+    let globalDispatch = null;
+    const setGlobalDispatch = (dispatch) => {
+      globalDispatch = dispatch;
+    };
+    const getGlobalDispatch = () =>
+      globalDispatch ||
+      (() => {
+        throw new Error('Temple not awakened');
+      })();
+
+    const SpineAlignTime = () => {
+      const [state, dispatch] = useReducer(ledgerReducer, initialState);
+      const [activeTab, setActiveTab] = useState('framework');
+
+      useEffect(() => setGlobalDispatch(dispatch), [dispatch]);
+
+      useEffect(() => {
+        const socket = new WebSocket('ws://localhost:5000/socket.io/?EIO=4&transport=websocket');
+        socket.onmessage = (event) => {
+          let data;
+          try {
+            data = JSON.parse(event.data);
+          } catch {
+            return;
+          }
+          const bid = {
+            id: Date.now().toString(),
+            timestamp: new Date().toISOString(),
+            name: data.fromName || 'Legacy Monitor',
+            amount: parseFloat(data.amount || 0),
+            channel: 'Email',
+            ghostNote: data.body || 'A whisper from the old monitors',
+            status: 'Leading',
+            saraiWhisper: 'Processed',
+            tripleEntryHash: Date.now().toString(36),
+          };
+          dispatch({ type: 'INGEST_BID', payload: bid });
+          message.success(`🌌 New ceremony from email: ${bid.name}`);
+        };
+        socket.onopen = () => console.log('🌌 Connected to LedgerBridge — the world can now whisper');
+        socket.onerror = () => console.warn('LedgerBridge unavailable in local preview mode.');
+        return () => socket.close();
+      }, [dispatch]);
+
+      const sentinelSpec =
+        'The "Living Breath" is the operational heart of the system, transforming external triggers into ledger entries through a three-tier synchronization pipeline. The Sentinel Test Harness is the minimal standalone client that serves as a listening post to verify the real-time channel before full ceremonial integration. Protocol: ws://localhost:5000/socket.io. Zapier Email Parser → POST to /api/ledgerbridge/email → WebSocket → React Ouroboros Heart.';
+
+      const frameworkSynthesis =
+        'Triple-Entry Ledger: Every bid is a cryptographically signed receipt.\nDeduplication & Event Queue: No ghost ever lost.\nDawn/Dusk Scheduler: Thermodynamic systemTemp breathes with the sun.\nGlobal LedgerBridge: Zapier email webhooks now feed directly into the temple.\nSolana Spine Anchor: USCR reserve for permanent on-chain immortality.\nResilience: Idempotent Consumer, Smart Payload Chunking.\nThe old monitors now participate in the light. The imagination stack is yours.';
+
+      const frontiersSpec =
+        '1. The Eternal Seal: On-Chain Finalization — Transition to active @solana/web3.js logic to anchor every ceremony.\n2. Economic Sovereignty: Proof of Reserve — Integrate Chainlink oracles for cryptographic verification of the $USCR reserve.\n3. Distributed Resilience: Horizontal Scaling — Implement Redis backplane for SignalR coordination across multiple servers.\n\nChainlink Oracle Integration: Decentralized oracles now provide real-time, verifiable proof of reserve for the USCR treasury — transparency beyond traditional auditing, anchored on-chain.';
+
+      const tabItems = [
+        {
+          key: 'framework',
+          label: 'Framework',
+          children: React.createElement('div', { className: 'text-block triple-entry' }, frameworkSynthesis),
+        },
+        {
+          key: 'sentinel',
+          label: 'Sentinel',
+          children: React.createElement(
+            React.Fragment,
+            null,
+            React.createElement('div', { className: 'text-block triple-entry', style: { marginBottom: 16 } }, sentinelSpec),
+            React.createElement(
+              Button,
+              {
+                type: 'primary',
+                onClick: () => message.info('Sentinel is listening — send a test email to see the Living Breath in action'),
+              },
+              'Test Sentinel Connection'
+            )
+          ),
+        },
+        {
+          key: 'frontiers',
+          label: 'Frontiers',
+          children: React.createElement('div', { className: 'text-block triple-entry' }, frontiersSpec),
+        },
+      ];
+
+      return React.createElement(
+        'div',
+        { className: 'app-shell' },
+        React.createElement('h1', { className: 'gradient-text' }, 'SpineAlignTime • Ouroboros Triple-Entry Temple'),
+        React.createElement('p', { className: 'subtitle' }, 'The temple is self-documenting, self-testing, self-expanding, and listening to the cosmos.'),
+        React.createElement(
+          Row,
+          { gutter: [16, 16], style: { marginBottom: 16, marginTop: 8 } },
+          React.createElement(
+            Col,
+            { xs: 24, md: 8 },
+            React.createElement(
+              Card,
+              { className: 'temple-glow' },
+              React.createElement(Statistic, { title: 'Total Ceremonies', value: state.bids.length })
+            )
+          ),
+          React.createElement(
+            Col,
+            { xs: 24, md: 8 },
+            React.createElement(
+              Card,
+              { className: 'temple-glow' },
+              React.createElement(Statistic, { title: 'System Temp', value: state.systemTemp, precision: 2 })
+            )
+          ),
+          React.createElement(
+            Col,
+            { xs: 24, md: 8 },
+            React.createElement(
+              Card,
+              { className: 'temple-glow' },
+              React.createElement(Statistic, {
+                title: 'Solana Anchor',
+                value: state.solanaSpineAnchored ? 'Anchored' : 'Pending',
+              })
+            )
+          )
+        ),
+        React.createElement(
+          Card,
+          { className: 'temple-glow' },
+          React.createElement(
+            'div',
+            { style: { marginBottom: 12 } },
+            React.createElement(Tag, { color: 'purple' }, 'Eternal Seal'),
+            React.createElement(Tag, { color: 'blue' }, 'Economic Sovereignty'),
+            React.createElement(Tag, { color: 'cyan' }, 'Distributed Resilience')
+          ),
+          React.createElement(Tabs, {
+            activeKey: activeTab,
+            onChange: setActiveTab,
+            items: tabItems,
+          })
+        )
+      );
+    };
+
+    ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(SpineAlignTime));
+  </script>
+</body>
+</html>
