@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SpineAlignTime • Ouroboros Triple-Entry Temple</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/antd@5.22.7/dist/reset.min.css" />
+  <style>
+    body {
+      margin: 0;
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #0f172a 100%);
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: #e2e8f0;
+    }
+    #root { padding: 24px; }
+    .gradient-text {
+      background: linear-gradient(135deg, #60a5fa 0%, #a855f7 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .temple-glow { box-shadow: 0 0 50px rgba(168, 85, 247, 0.35); }
+    .triple-entry { border-left: 4px solid #a855f7; }
+    .frame-card { height: 100%; }
+    .temple-shell {
+      max-width: 1300px;
+      margin: 0 auto;
+      background: rgba(15, 23, 42, 0.62);
+      border: 1px solid rgba(96, 165, 250, 0.25);
+      border-radius: 16px;
+      padding: 20px;
+      backdrop-filter: blur(8px);
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/antd@5.22.7/dist/antd.min.js"></script>
+
+  <script>
+    const { useEffect, useReducer } = React;
+    const { Card, Row, Col, Statistic, Tabs, Tag, Button, Alert, Space, message, Typography, Divider } = antd;
+
+    const initialState = {
+      bids: [],
+      solanaSpineAnchored: false,
+      ethereumSpineAnchored: false,
+      frames: Array.from({ length: 22 }, (_, i) => ({
+        id: i,
+        name: `Frame ${i + 1}`,
+        realm: i === 0 ? 'Point' : `Realm ${i + 1}`,
+        bids: [],
+        anchoredSolana: false,
+        anchoredEthereum: false
+      }))
+    };
+
+    function ledgerReducer(state, action) {
+      switch (action.type) {
+        case 'INGEST_BID':
+          return {
+            ...state,
+            bids: [...state.bids, { ...action.payload, tripleEntryHash: Date.now().toString(36) }]
+          };
+        case 'FRAME_INGEST_BID': {
+          const frames = [...state.frames];
+          frames[action.frameId] = {
+            ...frames[action.frameId],
+            bids: [...frames[action.frameId].bids, { ...action.payload, tripleEntryHash: Date.now().toString(36) }]
+          };
+          return { ...state, frames };
+        }
+        case 'ANCHOR_SOLANA':
+          return { ...state, solanaSpineAnchored: true };
+        case 'ANCHOR_ETHEREUM':
+          return { ...state, ethereumSpineAnchored: true };
+        case 'FRAME_ANCHOR_SOLANA': {
+          const frames = [...state.frames];
+          frames[action.frameId] = { ...frames[action.frameId], anchoredSolana: true };
+          return { ...state, frames };
+        }
+        case 'FRAME_ANCHOR_ETHEREUM': {
+          const frames = [...state.frames];
+          frames[action.frameId] = { ...frames[action.frameId], anchoredEthereum: true };
+          return { ...state, frames };
+        }
+        default:
+          return state;
+      }
+    }
+
+    function SpineAlignTime() {
+      const [state, dispatch] = useReducer(ledgerReducer, initialState);
+
+      useEffect(() => {
+        const ws = new WebSocket('ws://localhost:5000/socket.io/?EIO=4&transport=websocket');
+        ws.onmessage = (event) => {
+          let data;
+          try {
+            data = JSON.parse(event.data);
+          } catch {
+            return;
+          }
+
+          const bid = {
+            id: Date.now().toString(),
+            name: data.fromName || 'Legacy Monitor',
+            amount: parseFloat(data.amount || 0)
+          };
+          dispatch({ type: 'INGEST_BID', payload: bid });
+          dispatch({ type: 'FRAME_INGEST_BID', frameId: Math.floor(Math.random() * 22), payload: bid });
+          message.success(`🌌 New ceremony from email: ${bid.name}`);
+        };
+        ws.onopen = () => console.log('🌌 Connected to LedgerBridge — the world can now whisper');
+        ws.onerror = () => console.log('LedgerBridge offline in local preview mode');
+
+        return () => ws.close();
+      }, []);
+
+      const tabItems = [
+        {
+          key: 'governance',
+          label: 'Governance',
+          children: React.createElement(Space, { direction: 'vertical', style: { width: '100%' }, size: 16 },
+            React.createElement(Alert, {
+              type: 'info',
+              message: 'Governance walls are active: cadence follows Governance → Expansion → Governance.',
+              showIcon: true
+            }),
+            React.createElement(Row, { gutter: 16 },
+              React.createElement(Col, { xs: 24, md: 8 }, React.createElement(Card, { className: 'temple-glow' },
+                React.createElement(Statistic, { title: 'Total Spine Ceremonies', value: state.bids.length })
+              )),
+              React.createElement(Col, { xs: 24, md: 8 }, React.createElement(Card, null,
+                React.createElement(Statistic, {
+                  title: 'Solana Spine Anchor',
+                  value: state.solanaSpineAnchored ? 'Anchored' : 'Pending'
+                })
+              )),
+              React.createElement(Col, { xs: 24, md: 8 }, React.createElement(Card, null,
+                React.createElement(Statistic, {
+                  title: 'Ethereum Spine Anchor',
+                  value: state.ethereumSpineAnchored ? 'Anchored' : 'Pending'
+                })
+              ))
+            ),
+            React.createElement(Space, null,
+              React.createElement(Button, {
+                type: 'primary',
+                onClick: () => {
+                  dispatch({ type: 'ANCHOR_SOLANA' });
+                  message.success('🔥 Spine anchored on Solana devnet');
+                }
+              }, 'Anchor Spine to Solana'),
+              React.createElement(Button, {
+                onClick: () => {
+                  dispatch({ type: 'ANCHOR_ETHEREUM' });
+                  message.success('⛓️ Spine anchored on Ethereum testnet');
+                }
+              }, 'Anchor Spine to Ethereum')
+            )
+          )
+        },
+        {
+          key: 'expansion',
+          label: 'Expansion',
+          children: React.createElement(Space, { direction: 'vertical', style: { width: '100%' }, size: 16 },
+            React.createElement(Alert, {
+              type: 'success',
+              showIcon: true,
+              message: '22-Frame Wheel blueprint is live: sovereign sub-ledgers with per-frame dual anchors.'
+            }),
+            React.createElement(Row, { gutter: [12, 12] },
+              ...state.frames.map((frame) => React.createElement(Col, { xs: 24, sm: 12, md: 8, lg: 6, key: frame.id },
+                React.createElement(Card, { className: 'frame-card triple-entry', size: 'small' },
+                  React.createElement(Typography.Title, { level: 5, style: { marginTop: 0 } }, frame.name),
+                  React.createElement(Typography.Text, null, `Realm: ${frame.realm}`),
+                  React.createElement('br'),
+                  React.createElement(Typography.Text, null, `Bids: ${frame.bids.length}`),
+                  React.createElement(Divider, { style: { margin: '10px 0' } }),
+                  React.createElement(Space, { size: 4, wrap: true },
+                    React.createElement(Tag, { color: frame.anchoredSolana ? 'green' : 'default' }, `Solana ${frame.anchoredSolana ? '✓' : '…'}`),
+                    React.createElement(Tag, { color: frame.anchoredEthereum ? 'blue' : 'default' }, `Ethereum ${frame.anchoredEthereum ? '✓' : '…'}`)
+                  ),
+                  React.createElement('div', { style: { marginTop: 10 } },
+                    React.createElement(Space, { size: 6 },
+                      React.createElement(Button, {
+                        size: 'small',
+                        onClick: () => dispatch({ type: 'FRAME_ANCHOR_SOLANA', frameId: frame.id })
+                      }, 'Anchor Solana'),
+                      React.createElement(Button, {
+                        size: 'small',
+                        onClick: () => dispatch({ type: 'FRAME_ANCHOR_ETHEREUM', frameId: frame.id })
+                      }, 'Anchor Ethereum')
+                    )
+                  )
+                )
+              ))
+            )
+          )
+        },
+        {
+          key: 'horizon',
+          label: 'Horizon',
+          children: React.createElement(Alert, {
+            type: 'warning',
+            showIcon: true,
+            message: 'Next horizon: run CI/CD automation and onboard first external seekers in parallel.'
+          })
+        },
+        {
+          key: 'pipeline',
+          label: 'Pipeline',
+          children: React.createElement(Card, null,
+            React.createElement(Typography.Paragraph, null,
+              'GitHub Actions workflow and onboarding invitation are now captured in the codex for immediate execution.'
+            ),
+            React.createElement(Typography.Paragraph, { code: true },
+              'name: Deploy Ouroboros Temple\non:\n  push:\n    branches: [ main ]\njobs:\n  deploy:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4'
+            )
+          )
+        }
+      ];
+
+      return React.createElement('div', { className: 'temple-shell' },
+        React.createElement(Typography.Title, { level: 2, className: 'gradient-text' },
+          'SpineAlignTime • Ouroboros Triple-Entry Temple'
+        ),
+        React.createElement(Tabs, { defaultActiveKey: 'governance', items: tabItems })
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(SpineAlignTime));
+  </script>
+</body>
+</html>
