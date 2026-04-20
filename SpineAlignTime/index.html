@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SpineAlignTime - LedgerBridge Listener</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 2rem; }
+      .bid { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; }
+      .meta { color: #666; font-size: 0.9rem; }
+    </style>
+  </head>
+  <body>
+    <h1>SpineAlignTime Temple Feed</h1>
+    <p>Listening for new ceremonies from <code>/api/ledgerbridge/email</code>…</p>
+    <div id="bids"></div>
+
+    <script>
+      const bidsEl = document.getElementById('bids');
+      const bids = [];
+
+      function render() {
+        bidsEl.innerHTML = bids.map((bid) => `
+          <div class="bid">
+            <div><strong>${bid.name}</strong> — $${Number(bid.amount).toFixed(2)}</div>
+            <div class="meta">${bid.timestamp} • ${bid.channel} • hash: ${bid.tripleEntryHash}</div>
+            <div>${bid.ghostNote}</div>
+          </div>
+        `).join('');
+      }
+
+      // Equivalent listener behavior adapted for this static page.
+      const socket = new WebSocket('ws://localhost:5000/socket.io/?EIO=4&transport=websocket');
+      socket.onmessage = (event) => {
+        let parsed;
+        try {
+          parsed = JSON.parse(event.data);
+        } catch (_e) {
+          return;
+        }
+
+        const bid = {
+          id: Date.now().toString(),
+          timestamp: new Date().toISOString(),
+          name: parsed.fromName,
+          amount: parseFloat(parsed.amount),
+          channel: 'Email',
+          ghostNote: parsed.body,
+          status: 'Leading',
+          saraiWhisper: 'Processed',
+          tripleEntryHash: Date.now().toString(36),
+        };
+
+        bids.unshift(bid);
+        render();
+      };
+
+      socket.onopen = () => console.log('Temple listener connected');
+      socket.onerror = (error) => console.error('Socket error:', error);
+    </script>
+  </body>
+</html>
