@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flow Pipeline</title>
+  <style>
+    :root {
+      --bg: #06060e;
+      --surface: #0d0d1a;
+      --card: #111124;
+      --gold: #c9a84c;
+      --gold-dim: #7a6328;
+      --ivory: #f5f0e1;
+      --dim: #8b8499;
+      --good: #3fb68b;
+      --warn: #d4a843;
+      --bad: #e05252;
+      --border: rgba(201, 168, 76, 0.15);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--ivory);
+      font-family: "JetBrains Mono", monospace;
+    }
+    button, input { font: inherit; }
+    button { transition: all 0.2s ease; }
+    input:focus { outline: none; }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 3px; }
+
+    .page {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 1rem 1rem 3rem;
+      min-height: 100vh;
+    }
+    .header { text-align: center; padding: 1.5rem 0 1rem; }
+    .header h1 {
+      font-family: Georgia, serif;
+      font-size: 1.7rem;
+      color: var(--gold);
+      margin: 0 0 0.3rem;
+      font-weight: 600;
+    }
+    .header p {
+      color: var(--dim);
+      font-size: 0.75rem;
+      margin: 0;
+      line-height: 1.6;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      align-items: start;
+    }
+    .section-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.14em;
+      color: var(--dim);
+      margin-bottom: 0.75rem;
+    }
+    .field-grid, .path-list {
+      display: grid;
+      gap: 0.5rem;
+    }
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem;
+    }
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      position: sticky;
+      top: 1rem;
+    }
+    .field-chip {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.65rem 0.9rem;
+      cursor: pointer;
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      color: var(--ivory);
+    }
+    .field-chip.active { box-shadow: inset 0 0 0 1px currentColor; }
+    .field-chip-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .glyph { font-size: 1.1rem; }
+    .chip-label, .chip-tone, .chip-desc, .metric, .small, .history-row, .ctrl-btn {
+      font-family: "JetBrains Mono", monospace;
+    }
+    .chip-label { font-size: 0.72rem; font-weight: 600; }
+    .chip-tone { font-size: 0.58rem; color: var(--dim); margin-left: auto; }
+    .chip-desc { margin: 0; font-size: 0.7rem; color: var(--dim); line-height: 1.4; }
+    .input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--gold-dim);
+      color: var(--ivory);
+      padding: 0.5rem 0.75rem;
+      border-radius: 7px;
+      font-size: 0.85rem;
+      margin-bottom: 0.6rem;
+    }
+    .preset-row, .button-row { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+    .button-row { gap: 0.5rem; }
+    .preset {
+      background: transparent;
+      border: 1px solid var(--gold-dim);
+      color: var(--gold-dim);
+      padding: 0.15rem 0.5rem;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.65rem;
+    }
+    .run-btn {
+      flex: 1;
+      background: var(--gold);
+      color: #000;
+      border: none;
+      padding: 0.55rem;
+      border-radius: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.82rem;
+    }
+    .run-btn:disabled, .loop-btn:disabled, .dissolve:disabled, .ctrl-btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.35;
+    }
+    .loop-btn {
+      background: transparent;
+      border: 1px solid var(--gold-dim);
+      color: var(--gold);
+      padding: 0.55rem 0.85rem;
+      border-radius: 16px;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+    .signal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    .signal-value {
+      font-family: Georgia, serif;
+      font-size: 2rem;
+      line-height: 1;
+    }
+    .signal-bar {
+      position: relative;
+      height: 5px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 3px;
+      margin: 0.6rem 0 0.3rem;
+    }
+    .signal-mid {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: var(--gold-dim);
+      opacity: 0.4;
+    }
+    .signal-dot {
+      position: absolute;
+      top: -3px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      transform: translateX(-50%);
+      transition: left 0.5s ease;
+    }
+    .signal-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.58rem;
+      color: var(--dim);
+    }
+    .path-step {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+      display: flex;
+      gap: 0.85rem;
+      align-items: flex-start;
+      transition: all 0.35s ease;
+    }
+    .index { min-width: 20px; padding-top: 2px; color: var(--gold-dim); font-size: 0.65rem; }
+    .step-content { flex: 1; min-width: 0; }
+    .step-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem; gap: 0.5rem; }
+    .step-name { font-size: 0.75rem; font-weight: 600; }
+    .blink { animation: blink 1s infinite; font-size: 0.6rem; color: var(--gold-dim); }
+    .metric { font-size: 0.65rem; color: var(--dim); margin-bottom: 0.25rem; display: flex; justify-content: space-between; }
+    .step-bar { height: 3px; background: rgba(255,255,255,0.06); border-radius: 2px; }
+    .step-fill { height: 100%; border-radius: 2px; transition: width 0.5s ease; }
+    .ctrls { display: flex; flex-direction: column; gap: 0.2rem; }
+    .ctrl-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--ivory);
+      border-radius: 4px;
+      padding: 0.1rem 0.3rem;
+      font-size: 0.65rem;
+      line-height: 1;
+      cursor: pointer;
+    }
+    .history-row {
+      display: flex;
+      gap: 0.75rem;
+      font-size: 0.65rem;
+      padding: 0.3rem 0;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+    }
+    .history-row:last-child { border-bottom: none; }
+    .dissolve {
+      background: transparent;
+      border: 1px solid rgba(224,82,82,0.25);
+      color: rgba(224,82,82,0.6);
+      padding: 0.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.72rem;
+      width: 100%;
+    }
+    .empty { color: var(--dim); font-size: 0.72rem; }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.15; }
+    }
+
+    @media (max-width: 860px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { position: static; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="header">
+      <h1>Flow Pipeline</h1>
+      <p>
+        Pick up what fits. Set it down when done.<br />
+        Nothing is recorded. No order is required.
+      </p>
+    </div>
+
+    <div class="layout">
+      <section>
+        <div class="section-label">AVAILABLE TRANSFORMS — touch to add or remove</div>
+        <div id="field" class="field-grid"></div>
+      </section>
+
+      <aside class="sidebar">
+        <div class="panel">
+          <div class="section-label" style="margin-bottom:0.5rem">SIGNAL — anything works</div>
+          <input id="raw-input" class="input" placeholder="word, number, silence (enter)" />
+          <div class="preset-row" style="margin-bottom:0.75rem" id="presets"></div>
+          <div class="button-row">
+            <button id="run" class="run-btn">RUN</button>
+            <button id="loop" class="loop-btn">↺</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="signal-head">
+            <div id="signal-value" class="signal-value">100.0</div>
+            <div id="signal-density" class="small">BALANCED</div>
+          </div>
+          <div class="signal-bar">
+            <div class="signal-mid"></div>
+            <div id="signal-dot" class="signal-dot"></div>
+          </div>
+          <div class="signal-labels"><span>dense</span><span>equil</span><span>diffuse</span></div>
+          <div id="passes" class="small" style="margin-top:0.5rem;color:var(--gold-dim)"></div>
+        </div>
+
+        <div>
+          <div class="section-label" style="margin-bottom:0.5rem">YOUR PATH — reorder or remove freely</div>
+          <div id="path" class="path-list"></div>
+        </div>
+
+        <div id="history-panel" class="panel" hidden>
+          <div class="section-label" style="margin-bottom:0.5rem">RECENT PASSES</div>
+          <div id="history"></div>
+        </div>
+
+        <button id="dissolve" class="dissolve">dissolve — clear everything, return to field</button>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const T = {
+      bg: '#06060E', surface: '#0D0D1A', card: '#111124',
+      gold: '#C9A84C', goldDim: '#7A6328', ivory: '#F5F0E1', dim: '#8B8499',
+      good: '#3FB68B', warn: '#D4A843', bad: '#E05252', border: 'rgba(201,168,76,0.15)'
+    };
+
+    const FIELD = [
+      { id: 'receive', glyph: '◎', label: 'Receive', color: '#5B8DD9', tone: 'Entry', desc: 'Signal enters as-is. Nothing added, nothing removed.', fn: v => v },
+      { id: 'compress', glyph: '▼', label: 'Compress', color: '#9B59B6', tone: 'Reduction', desc: 'Density increases. Signal finds its minimum viable form.', fn: v => v * 0.618 },
+      { id: 'expand', glyph: '▲', label: 'Expand', color: '#3FB68B', tone: 'Release', desc: 'Density releases. Signal occupies more space.', fn: v => v * 1.618 },
+      { id: 'resonate', glyph: '≋', label: 'Resonate', color: T.gold, tone: 'Pattern', desc: 'Signal locates its frequency within a bounded range.', fn: v => Math.sin(v * 0.05) * 100 + 100 },
+      { id: 'rebalance', glyph: '⊕', label: 'Rebalance', color: '#E87040', tone: 'Equilibrium', desc: 'System pulls toward center. Half the distance, each pass.', fn: v => v + (100 - v) * 0.5 },
+      { id: 'invert', glyph: '⊘', label: 'Invert', color: '#E05252', tone: 'Reversal', desc: 'Signal mirrors around equilibrium. What was high becomes low.', fn: v => 200 - v },
+      { id: 'amplify', glyph: '⤴', label: 'Amplify', color: '#F0C040', tone: 'Intensify', desc: 'Signal strength doubles. Clarity and noise both increase.', fn: v => Math.min(200, v * 2) },
+      { id: 'attenuate', glyph: '⤵', label: 'Attenuate', color: '#7EB8C4', tone: 'Soften', desc: 'Signal halves. Volume reduces without stopping the flow.', fn: v => v * 0.5 },
+      { id: 'scatter', glyph: '∴', label: 'Scatter', color: '#A08060', tone: 'Diffuse', desc: 'Randomness introduced. Signal disperses from its path.', fn: v => Math.max(0, Math.min(200, v + (Math.random() - 0.5) * 40)) },
+      { id: 'hold', glyph: '—', label: 'Hold', color: T.dim, tone: 'Pause', desc: 'No transformation. Observe the signal as it is.', fn: v => v },
+      { id: 'anchor', glyph: '⚓', label: 'Anchor', color: '#60A0C0', tone: 'Ground', desc: 'Signal pulled strongly to center. 80% of the gap closes.', fn: v => v + (100 - v) * 0.8 },
+      { id: 'threshold', glyph: '⌇', label: 'Threshold', color: '#C060A0', tone: 'Gate', desc: 'Below 100 stays low. Above 100 gets pushed higher. Polarity held.', fn: v => v < 100 ? v * 0.7 : Math.min(200, v * 1.3) },
+    ];
+
+    const state = {
+      path: [],
+      rawInput: '',
+      signal: 100,
+      activeIdx: -1,
+      steps: [],
+      loopCount: 0,
+      running: false,
+      history: [],
+      timers: []
+    };
+
+    const els = {
+      field: document.getElementById('field'),
+      path: document.getElementById('path'),
+      rawInput: document.getElementById('raw-input'),
+      presets: document.getElementById('presets'),
+      run: document.getElementById('run'),
+      loop: document.getElementById('loop'),
+      dissolve: document.getElementById('dissolve'),
+      signalValue: document.getElementById('signal-value'),
+      signalDensity: document.getElementById('signal-density'),
+      signalDot: document.getElementById('signal-dot'),
+      passes: document.getElementById('passes'),
+      historyPanel: document.getElementById('history-panel'),
+      history: document.getElementById('history')
+    };
+
+    function signalFrom(text) {
+      if (!text || !text.trim()) return 100;
+      let h = 0;
+      for (let i = 0; i < text.length; i += 1) h = (h * 31 + text.charCodeAt(i)) & 0xffffffff;
+      return Math.abs(h % 200);
+    }
+
+    function densityOf(v) {
+      if (v < 40) return { label: 'DENSE', color: '#5B8DD9' };
+      if (v < 80) return { label: 'CONDENSED', color: '#9B59B6' };
+      if (v < 120) return { label: 'BALANCED', color: T.good };
+      if (v < 160) return { label: 'DIFFUSE', color: T.warn };
+      return { label: 'SCATTERED', color: T.bad };
+    }
+
+    function runThrough(nodes, signal) {
+      let v = signal;
+      return nodes.map((n) => {
+        const input = v;
+        v = n.fn(v);
+        return { id: n.id, input: +input.toFixed(2), output: +v.toFixed(2) };
+      });
+    }
+
+    function clearTimers() {
+      state.timers.forEach(clearTimeout);
+      state.timers = [];
+    }
+
+    function setInput(value) {
+      state.rawInput = value;
+      els.rawInput.value = value;
+    }
+
+    function toggleNode(id) {
+      if (state.running) return;
+      const existing = state.path.find((n) => n.id === id);
+      state.path = existing ? state.path.filter((n) => n.id !== id) : [...state.path, FIELD.find((n) => n.id === id)];
+      render();
+    }
+
+    function moveNode(index, direction) {
+      if (state.running) return;
+      const next = [...state.path];
+      const swapWith = index + direction;
+      if (swapWith < 0 || swapWith >= next.length) return;
+      [next[index], next[swapWith]] = [next[swapWith], next[index]];
+      state.path = next;
+      render();
+    }
+
+    function removeNode(index) {
+      if (state.running) return;
+      state.path = state.path.filter((_, idx) => idx !== index);
+      render();
+    }
+
+    function runFlow(inputSignal) {
+      if (state.running || state.path.length === 0) return;
+      clearTimers();
+      const sv = inputSignal ?? signalFrom(state.rawInput);
+      const pipelineSteps = runThrough(state.path, sv);
+      state.steps = [];
+      state.running = true;
+      render();
+
+      pipelineSteps.forEach((step, i) => {
+        const timer = setTimeout(() => {
+          state.activeIdx = i;
+          state.steps = [...state.steps, step];
+          render();
+
+          if (i === pipelineSteps.length - 1) {
+            const finish = setTimeout(() => {
+              const out = step.output;
+              state.signal = out;
+              state.activeIdx = -1;
+              state.running = false;
+              state.loopCount += 1;
+              state.history = [{ input: sv.toFixed(1), output: out.toFixed(1), density: densityOf(out).label, pathLen: state.path.length }, ...state.history.slice(0, 9)];
+              render();
+            }, 450);
+            state.timers.push(finish);
+          }
+        }, i * 480);
+        state.timers.push(timer);
+      });
+    }
+
+    function dissolve() {
+      clearTimers();
+      state.path = [];
+      state.steps = [];
+      state.activeIdx = -1;
+      state.running = false;
+      state.signal = 100;
+      state.loopCount = 0;
+      state.history = [];
+      setInput('');
+      render();
+    }
+
+    function renderField() {
+      els.field.innerHTML = '';
+      FIELD.forEach((node) => {
+        const inPath = state.path.some((n) => n.id === node.id);
+        const btn = document.createElement('button');
+        btn.className = 'field-chip';
+        btn.title = node.desc;
+        btn.style.background = inPath ? `${node.color}22` : 'rgba(255,255,255,0.02)';
+        btn.style.borderColor = inPath ? node.color : T.border;
+        btn.style.color = inPath ? node.color : T.ivory;
+        btn.disabled = state.running;
+        btn.innerHTML = `
+          <div class="field-chip-row">
+            <span class="glyph" style="color:${node.color}">${node.glyph}</span>
+            <span class="chip-label" style="color:${inPath ? node.color : T.ivory}">${node.label}</span>
+            <span class="chip-tone">${node.tone}</span>
+          </div>
+          <p class="chip-desc">${node.desc}</p>
+        `;
+        btn.addEventListener('click', () => toggleNode(node.id));
+        els.field.appendChild(btn);
+      });
+    }
+
+    function renderPath() {
+      els.path.innerHTML = '';
+      if (state.path.length === 0) {
+        els.path.innerHTML = '<div class="empty">No transforms selected yet.</div>';
+        return;
+      }
+
+      state.path.forEach((node, index) => {
+        const step = state.steps[index] || null;
+        const density = step ? densityOf(step.output) : null;
+        const pct = step ? (step.output / 200) * 100 : 0;
+        const item = document.createElement('div');
+        item.className = 'path-step';
+        item.style.background = state.activeIdx === index ? `${node.color}18` : T.card;
+        item.style.borderColor = state.activeIdx === index ? node.color : step ? `${node.color}55` : T.border;
+        item.innerHTML = `
+          <div class="index">${index + 1}</div>
+          <span style="font-size:1.3rem;color:${node.color};flex-shrink:0">${node.glyph}</span>
+          <div class="step-content">
+            <div class="step-top">
+              <span class="step-name" style="color:${node.color}">${node.label}</span>
+              ${state.activeIdx === index ? '<span class="blink">PROCESSING</span>' : density ? `<span class="small" style="font-size:0.62rem;color:${density.color}">${density.label}</span>` : ''}
+            </div>
+            ${step ? `
+              <div class="metric"><span>${step.input.toFixed(1)} →</span><span style="color:${T.ivory}">${step.output.toFixed(1)}</span></div>
+              <div class="step-bar"><div class="step-fill" style="width:${pct}%;background:${node.color}"></div></div>
+            ` : ''}
+          </div>
+          <div class="ctrls">
+            <button class="ctrl-btn" data-action="up" ${index === 0 ? 'disabled' : ''}>↑</button>
+            <button class="ctrl-btn" data-action="down" ${index === state.path.length - 1 ? 'disabled' : ''}>↓</button>
+            <button class="ctrl-btn" data-action="remove" style="color:${T.bad};border-color:rgba(224,82,82,0.3)">✕</button>
+          </div>
+        `;
+        item.querySelector('[data-action="up"]').addEventListener('click', () => moveNode(index, -1));
+        item.querySelector('[data-action="down"]').addEventListener('click', () => moveNode(index, 1));
+        item.querySelector('[data-action="remove"]').addEventListener('click', () => removeNode(index));
+        els.path.appendChild(item);
+      });
+    }
+
+    function renderSignal() {
+      const density = densityOf(state.signal);
+      els.signalValue.textContent = state.signal.toFixed(1);
+      els.signalValue.style.color = density.color;
+      els.signalDensity.textContent = density.label;
+      els.signalDensity.style.color = density.color;
+      els.signalDot.style.left = `${Math.min(100, (state.signal / 200) * 100)}%`;
+      els.signalDot.style.background = density.color;
+      els.signalDot.style.boxShadow = `0 0 6px ${density.color}`;
+      els.passes.textContent = state.loopCount > 0 ? `♾ ${state.loopCount} ${state.loopCount === 1 ? 'pass' : 'passes'}` : '';
+    }
+
+    function renderHistory() {
+      els.historyPanel.hidden = state.history.length === 0;
+      els.history.innerHTML = '';
+      state.history.forEach((entry) => {
+        const density = densityOf(parseFloat(entry.output));
+        const row = document.createElement('div');
+        row.className = 'history-row';
+        row.innerHTML = `
+          <span style="color:${T.dim}">${entry.input}</span>
+          <span style="color:${T.dim}">→</span>
+          <span style="color:${T.ivory}">${entry.output}</span>
+          <span style="color:${density.color};margin-left:auto">${entry.density}</span>
+          <span style="color:${T.dim}">×${entry.pathLen}</span>
+        `;
+        els.history.appendChild(row);
+      });
+    }
+
+    function renderControls() {
+      const runDisabled = state.running || state.path.length === 0;
+      els.run.disabled = runDisabled;
+      els.run.textContent = state.running ? 'FLOWING…' : state.path.length === 0 ? 'pick a transform' : 'RUN';
+      els.run.style.background = runDisabled ? T.goldDim : T.gold;
+      els.run.style.opacity = state.path.length === 0 ? '0.4' : '1';
+      els.loop.disabled = state.running || state.loopCount === 0;
+      els.rawInput.disabled = state.running;
+      els.dissolve.disabled = state.running;
+    }
+
+    function render() {
+      renderField();
+      renderPath();
+      renderSignal();
+      renderHistory();
+      renderControls();
+    }
+
+    ['stuck', 'open', 'return', 'break', '100', '0'].forEach((preset) => {
+      const btn = document.createElement('button');
+      btn.className = 'preset';
+      btn.textContent = preset;
+      btn.addEventListener('click', () => setInput(preset));
+      els.presets.appendChild(btn);
+    });
+
+    els.rawInput.addEventListener('input', (event) => {
+      state.rawInput = event.target.value;
+    });
+    els.rawInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' && !state.running) runFlow();
+    });
+    els.run.addEventListener('click', () => runFlow());
+    els.loop.addEventListener('click', () => runFlow(state.signal));
+    els.dissolve.addEventListener('click', dissolve);
+
+    render();
+  </script>
+</body>
+</html>
