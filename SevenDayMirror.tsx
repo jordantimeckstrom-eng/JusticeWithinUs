@@ -93,7 +93,7 @@ export default function SevenDayMirror({ chainCount, setChainCount }: SevenDayMi
 
   const syncWithRedis = async () => {
     try {
-      const res = await fetch("http://localhost:3001/api/ledger/sync", {
+      const res = await fetch("/api/ledger/sync", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ spineHistory, pillarHistory, realityLog, chainCount }),
