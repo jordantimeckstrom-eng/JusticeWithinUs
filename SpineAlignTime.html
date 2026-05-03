@@ -82,8 +82,9 @@
   </div>
 
   <script>
-    const REPO_USER = 'YOUR_GITHUB_USERNAME';
-    const CONFIG_URL = `https://raw.githubusercontent.com/${REPO_USER}/JUSCR/main/SpineAlignTime/config.json`;
+    const DEFAULT_REPO_USER = 'jordantimeckstrom-eng';
+    const DEFAULT_REPO_NAME = 'JusticeWithinUs';
+    const CONFIG_PATH = 'SpineAlignTime/config.json';
     const STORAGE_KEY = 'spine-align-time-v1';
 
     let GOALS = [];
@@ -128,9 +129,20 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     }
 
+    function getConfigUrl() {
+      const host = window.location.hostname;
+      if (host.endsWith('github.io')) {
+        const repoUser = host.split('.')[0] || DEFAULT_REPO_USER;
+        const firstPathSegment = window.location.pathname.split('/').filter(Boolean)[0];
+        const repoName = firstPathSegment || DEFAULT_REPO_NAME;
+        return `https://raw.githubusercontent.com/${repoUser}/${repoName}/main/${CONFIG_PATH}`;
+      }
+      return `https://raw.githubusercontent.com/${DEFAULT_REPO_USER}/${DEFAULT_REPO_NAME}/main/${CONFIG_PATH}`;
+    }
+
     async function loadConfig() {
       try {
-        const res = await fetch(CONFIG_URL, { cache:'no-store' });
+        const res = await fetch(getConfigUrl(), { cache:'no-store' });
         if (!res.ok) throw new Error('Config fetch failed');
         const config = await res.json();
         GOALS = config.goals?.length ? config.goals : defaultGoals;
@@ -139,7 +151,7 @@
       } catch (err) {
         GOALS = defaultGoals;
         PILLARS = defaultPillars;
-        statusEl.textContent = '⚠️ Fallback config in use (set REPO_USER and push config.json)';
+        statusEl.textContent = '⚠️ Fallback config in use (could not fetch SpineAlignTime/config.json)';
       }
       normalizeState();
       renderEverything();
