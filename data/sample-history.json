@@ -1,0 +1,86 @@
+[
+  {
+    "date": "2026-03-08",
+    "scores": {
+      "Cervical alignment": 7,
+      "Thoracic openness": 6,
+      "Lumbar stability": 8,
+      "Hip symmetry": 6,
+      "Shoulder release": 5,
+      "Breath depth": 7,
+      "Posture hold": 6
+    }
+  },
+  {
+    "date": "2026-03-09",
+    "scores": {
+      "Cervical alignment": 7,
+      "Thoracic openness": 7,
+      "Lumbar stability": 8,
+      "Hip symmetry": 7,
+      "Shoulder release": 6,
+      "Breath depth": 7,
+      "Posture hold": 6
+    }
+  },
+  {
+    "date": "2026-03-10",
+    "scores": {
+      "Cervical alignment": 8,
+      "Thoracic openness": 7,
+      "Lumbar stability": 8,
+      "Hip symmetry": 7,
+      "Shoulder release": 6,
+      "Breath depth": 8,
+      "Posture hold": 7
+    }
+  },
+  {
+    "date": "2026-03-11",
+    "scores": {
+      "Cervical alignment": 8,
+      "Thoracic openness": 7,
+      "Lumbar stability": 9,
+      "Hip symmetry": 7,
+      "Shoulder release": 7,
+      "Breath depth": 8,
+      "Posture hold": 7
+    }
+  },
+  {
+    "date": "2026-03-12",
+    "scores": {
+      "Cervical alignment": 8,
+      "Thoracic openness": 8,
+      "Lumbar stability": 9,
+      "Hip symmetry": 8,
+      "Shoulder release": 7,
+      "Breath depth": 8,
+      "Posture hold": 8
+    }
+  },
+  {
+    "date": "2026-03-13",
+    "scores": {
+      "Cervical alignment": 9,
+      "Thoracic openness": 8,
+      "Lumbar stability": 9,
+      "Hip symmetry": 8,
+      "Shoulder release": 7,
+      "Breath depth": 9,
+      "Posture hold": 8
+    }
+  },
+  {
+    "date": "2026-03-14",
+    "scores": {
+      "Cervical alignment": 9,
+      "Thoracic openness": 8,
+      "Lumbar stability": 9,
+      "Hip symmetry": 8,
+      "Shoulder release": 8,
+      "Breath depth": 9,
+      "Posture hold": 8
+    }
+  }
+]

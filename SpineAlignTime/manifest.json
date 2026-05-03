@@ -1,0 +1,12 @@
+{
+  "name": "SpineAlignTime",
+  "short_name": "SpineAlign",
+  "description": "Repo-driven spinal alignment controller",
+  "start_url": "../SpineAlignTime.html",
+  "scope": "../",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d1117",
+  "theme_color": "#0d1117",
+  "icons": []
+}
