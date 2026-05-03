@@ -163,10 +163,10 @@ jobs:
 
           cat > generated/pheonixFlyOn-notes.sh <<'SH'
           export HELIUS_KEY=cccc1234-5678-abcd-efgh-901234567890
-          node phoenix-scream-monitor.js
+          node generated/phoenix-scream-monitor.ts
 
           export RPC_URL=https://ash24.nodes.rpcpool.com
-          node phoenix-scream-monitor.js
+          node generated/phoenix-scream-monitor.ts
           SH
 
       - name: Show generated files
