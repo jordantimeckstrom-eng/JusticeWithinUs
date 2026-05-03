@@ -118,6 +118,12 @@ Use one table named **Spine Availability Dashboard** with these fields:
       "formula": "IF({status}=\"Available\",\"🦴🟢 TREASURE VALLEY SPINE OPEN\\n\" & {slots_open} & \" slots available today → DM \\\"SPINE\\\" + your preferred window\\n7-day dashboard live → \" & {dashboard_url},IF({status}=\"Limited\",\"🦴🟡 2 slots left — first come, first aligned\\nDM \\\"SPINE\\\" to claim today\\n7-day dashboard live → \" & {dashboard_url},IF({status}=\"Booked\",\"🦴🔴 CLOSED — next openings in dashboard\\nJoin next wave → DM \\\"SPINE\\\"\\n7-day dashboard live → \" & {dashboard_url},\"🦴🚐 IN THE VALLEY THIS WEEK\\nCheck windows + book fast → DM \\\"SPINE\\\"\\n7-day dashboard live → \" & {dashboard_url})))"
     },
     {
+      "key": "glyph_media_url",
+      "label": "Glyph Media URL",
+      "type": "formula",
+      "formula": "IF({status}=\"Available\",\"https://YOUR_CDN_OR_STATIC_HOST/spine-glyph-available.png\",IF({status}=\"Limited\",\"https://YOUR_CDN_OR_STATIC_HOST/spine-glyph-limited.png\",IF({status}=\"Booked\",\"https://YOUR_CDN_OR_STATIC_HOST/spine-glyph-booked.png\",\"https://YOUR_CDN_OR_STATIC_HOST/spine-glyph-traveling.png\")))"
+    },
+    {
       "key": "should_post",
       "label": "Should Post",
       "type": "formula",
@@ -174,6 +180,15 @@ Use one table named **Spine Availability Dashboard** with these fields:
           "field": "today_glyph",
           "operator": "not_equals",
           "value": ""
+        },
+        {
+          "field": "glyph_media_url",
+          "operator": "exists"
+        },
+        {
+          "field": "glyph_media_url",
+          "operator": "not_equals",
+          "value": ""
         }
       ]
     },
@@ -223,7 +238,7 @@ Use one table named **Spine Availability Dashboard** with these fields:
       "input": {
         "text": "{{steps.compose_post_body.threads_post_text}}",
         "media_type": "image",
-        "media_url": "https://YOUR_CDN_OR_STATIC_HOST/spine-glyph-available.png"
+        "media_url": "{{trigger.glyph_media_url}}"
       }
     },
     {
