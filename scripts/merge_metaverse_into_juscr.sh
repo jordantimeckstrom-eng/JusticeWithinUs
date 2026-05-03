@@ -22,5 +22,13 @@ else
   git remote add "$REMOTE_NAME" "$REPO_URL"
 fi
 
-git fetch "$REMOTE_NAME" "$METAVERSE_BRANCH"
-git merge --allow-unrelated-histories "$REMOTE_NAME/$METAVERSE_BRANCH"
+if [[ "$METAVERSE_BRANCH" == refs/* ]]; then
+  SOURCE_REF="$METAVERSE_BRANCH"
+else
+  SOURCE_REF="refs/heads/$METAVERSE_BRANCH"
+fi
+
+REMOTE_TRACKING_REF="refs/remotes/$REMOTE_NAME/$METAVERSE_BRANCH"
+
+git fetch "$REMOTE_NAME" "+$SOURCE_REF:$REMOTE_TRACKING_REF"
+git merge --allow-unrelated-histories "$REMOTE_TRACKING_REF"
