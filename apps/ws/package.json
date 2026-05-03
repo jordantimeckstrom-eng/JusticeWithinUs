@@ -1,0 +1,9 @@
+{
+  "name": "@juscr/ws",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "redis": "^4.7.0",
+    "socket.io": "^4.8.1"
+  }
+}
