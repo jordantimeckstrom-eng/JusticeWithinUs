@@ -1,0 +1,11 @@
+{
+  "name": "juscr-odin",
+  "private": true,
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "dev:web": "cd apps/web && npm run dev",
+    "dev:ws": "cd apps/ws && node index.js",
+    "build": "echo build step",
+    "start": "echo start"
+  }
+}
