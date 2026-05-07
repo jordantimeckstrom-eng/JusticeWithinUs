@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SpineAlignTime • Ouroboros Triple-Entry Temple</title>
+  <link rel="stylesheet" href="https://unpkg.com/antd@5/dist/reset.css" />
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #0f172a 100%);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #e2e8f0;
+    }
+    #root {
+      padding: 24px;
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+    .temple-glow {
+      box-shadow: 0 0 50px rgba(168, 85, 247, 0.35);
+    }
+    .triple-entry {
+      border-left: 4px solid #a855f7;
+    }
+    .gradient-text {
+      background: linear-gradient(135deg, #60a5fa 0%, #a855f7 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .ledger-item {
+      margin-bottom: 12px;
+      background: rgba(2, 6, 23, 0.65);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 10px;
+      padding: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/antd@5/dist/antd.min.js"></script>
+  <script>
+    const { useEffect, useReducer } = React;
+    const { Card, Typography, Button, Space, Tag, message } = antd;
+
+    const initialState = {
+      bids: [],
+      systemTemp: 0.85,
+      lastDawn: null,
+      solanaSpineAnchored: false,
+    };
+
+    const reducer = (state, action) => {
+      switch (action.type) {
+        case "INGEST_BID":
+          return {
+            ...state,
+            bids: [
+              {
+                ...action.payload,
+                tripleEntryHash: action.payload.tripleEntryHash || Date.now().toString(36),
+              },
+              ...state.bids,
+            ],
+          };
+        case "EVOLVE_SYSTEM":
+          return {
+            ...state,
+            systemTemp: action.payload.grokTemp || 0.92,
+            lastDawn: new Date().toISOString(),
+          };
+        case "ANCHOR_SOLANA":
+          return {
+            ...state,
+            solanaSpineAnchored: true,
+          };
+        default:
+          return state;
+      }
+    };
+
+    function SpineAlignTime() {
+      const [state, dispatch] = useReducer(reducer, initialState);
+
+      useEffect(() => {
+        const interval = setInterval(() => {
+          const now = new Date();
+          if (now.getHours() === 6 && now.getMinutes() === 0) {
+            dispatch({ type: "EVOLVE_SYSTEM", payload: { grokTemp: 0.92 } });
+          }
+        }, 60000);
+
+        return () => clearInterval(interval);
+      }, []);
+
+      useEffect(() => {
+        const socket = new WebSocket("ws://localhost:5000/socket.io/?EIO=4&transport=websocket");
+
+        socket.onmessage = (event) => {
+          let data;
+          try {
+            data = JSON.parse(event.data);
+          } catch {
+            return;
+          }
+
+          const bid = {
+            id: Date.now().toString(),
+            timestamp: new Date().toISOString(),
+            name: data.fromName || "Legacy Monitor",
+            amount: parseFloat(data.amount || 0),
+            channel: "Email",
+            ghostNote: data.body || "A whisper from the old monitors",
+            status: "Leading",
+            saraiWhisper: "Processed",
+            tripleEntryHash: Date.now().toString(36),
+          };
+
+          dispatch({ type: "INGEST_BID", payload: bid });
+          message.success(`🌌 New ceremony from email: ${bid.name}`);
+        };
+
+        socket.onopen = () => console.log("🌌 Connected to LedgerBridge");
+        socket.onerror = (err) => console.error("WebSocket error", err);
+
+        return () => socket.close();
+      }, []);
+
+      const anchorToSolana = async () => {
+        dispatch({ type: "ANCHOR_SOLANA" });
+        message.success("🔥 Ledger anchored to Solana — stub executed");
+      };
+
+      return React.createElement(
+        Card,
+        { className: "temple-glow triple-entry", style: { background: "rgba(15, 23, 42, 0.92)", color: "#e2e8f0" } },
+        React.createElement(Typography.Title, { level: 2, className: "gradient-text" }, "SpineAlignTime Temple"),
+        React.createElement(
+          Space,
+          { direction: "vertical", size: 12, style: { width: "100%" } },
+          React.createElement("div", null,
+            "System Temp: ",
+            React.createElement(Tag, { color: "blue" }, state.systemTemp.toFixed(2)),
+            " Last Dawn: ",
+            React.createElement(Tag, { color: state.lastDawn ? "green" : "default" }, state.lastDawn || "Pending")
+          ),
+          React.createElement(Button, { type: "primary", onClick: anchorToSolana }, "Anchor to Solana (Eternal Seal)"),
+          React.createElement(Tag, { color: state.solanaSpineAnchored ? "green" : "gold" }, state.solanaSpineAnchored ? "Anchored" : "Awaiting Anchor"),
+          React.createElement(Typography.Title, { level: 4, style: { color: "#bfdbfe", marginTop: 8 } }, "Live Ceremonies"),
+          state.bids.length === 0
+            ? React.createElement(Typography.Text, { type: "secondary" }, "No ceremonies received yet. Send a LedgerBridge webhook to begin.")
+            : state.bids.map((bid) =>
+                React.createElement(
+                  "div",
+                  { key: bid.id, className: "ledger-item" },
+                  React.createElement("strong", null, `${bid.name} — $${bid.amount.toFixed(2)}`),
+                  React.createElement("div", null, `${bid.channel} • ${bid.timestamp}`),
+                  React.createElement("div", null, bid.ghostNote),
+                  React.createElement("code", null, `tripleEntryHash: ${bid.tripleEntryHash}`)
+                )
+              )
+        )
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(SpineAlignTime));
+  </script>
+</body>
+</html>
