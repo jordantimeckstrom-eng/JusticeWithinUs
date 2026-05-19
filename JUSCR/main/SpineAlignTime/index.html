@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SpineAlignTime • Ouroboros Triple-Entry Temple</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/antd/4.24.16/antd.min.css" />
+    <style>
+      body {
+        margin: 0;
+        background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #0f172a 100%);
+        min-height: 100vh;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      }
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 24px;
+      }
+      .gradient-text {
+        background: linear-gradient(135deg, #60a5fa 0%, #a855f7 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .temple-glow {
+        box-shadow: 0 0 50px rgba(168, 85, 247, 0.35);
+      }
+      .triple-entry {
+        border-left: 4px solid #a855f7;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/antd/4.24.16/antd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+
+    <script>
+      const { useEffect, useReducer } = React;
+      const { Card, Typography, Space, Button, List, Tag, message } = antd;
+      const { Title, Paragraph, Text } = Typography;
+
+      const initialState = {
+        bids: [],
+        systemTemp: 0.85,
+        solanaSpineAnchored: false,
+        ethereumSpineAnchored: false,
+      };
+
+      function ledgerReducer(state, action) {
+        switch (action.type) {
+          case "INGEST_BID":
+            return { ...state, bids: [...state.bids, action.payload] };
+          case "ANCHOR_SOLANA":
+            return { ...state, solanaSpineAnchored: true };
+          case "ANCHOR_ETHEREUM":
+            return { ...state, ethereumSpineAnchored: true };
+          default:
+            return state;
+        }
+      }
+
+      function App() {
+        const [state, dispatch] = useReducer(ledgerReducer, initialState);
+
+        useEffect(() => {
+          let socket;
+          try {
+            socket = new WebSocket("ws://localhost:5000/socket.io/?EIO=4&transport=websocket");
+            socket.onmessage = (event) => {
+              let data;
+              try {
+                data = JSON.parse(event.data);
+              } catch {
+                return;
+              }
+              const bid = {
+                id: Date.now().toString(),
+                timestamp: new Date().toISOString(),
+                name: data.fromName || "Legacy Monitor",
+                amount: parseFloat(data.amount || 0),
+                body: data.body || "A whisper from the old monitors",
+                tripleEntryHash: Date.now().toString(36),
+              };
+              dispatch({ type: "INGEST_BID", payload: bid });
+              message.success(`🌌 New ceremony from email: ${bid.name}`);
+            };
+            socket.onopen = () => console.log("Sentinel connected");
+          } catch (e) {
+            console.warn("WebSocket unavailable:", e);
+          }
+          return () => socket && socket.close();
+        }, []);
+
+        const anchorToSolana = () => {
+          if (state.bids.length === 0) return message.error("No ceremony to anchor");
+          const latest = state.bids[state.bids.length - 1];
+          dispatch({ type: "ANCHOR_SOLANA" });
+          message.success(`🔥 Anchored on Solana devnet — Hash: ${latest.tripleEntryHash}`);
+        };
+
+        const anchorToEthereum = async () => {
+          if (state.bids.length === 0) return message.error("No ceremony to anchor");
+          const latest = state.bids[state.bids.length - 1];
+          const hashToAnchor = latest.tripleEntryHash;
+
+          try {
+            if (!window.ethereum) return message.error("Please install MetaMask or Coinbase Wallet");
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            await provider.send("eth_requestAccounts", []);
+            const signer = provider.getSigner();
+
+            const tx = {
+              to: "0x0000000000000000000000000000000000000000",
+              value: ethers.utils.parseEther("0.0001"),
+              data: ethers.utils.hexlify(ethers.utils.toUtf8Bytes(`Anchor: ${hashToAnchor}`)),
+            };
+
+            const sentTx = await signer.sendTransaction(tx);
+            const receipt = await sentTx.wait();
+            dispatch({ type: "ANCHOR_ETHEREUM" });
+            message.success(`🔥 Ceremony anchored on Ethereum Sepolia — Tx: ${receipt.transactionHash}`);
+          } catch (err) {
+            message.error("Ethereum anchor failed: " + err.message);
+          }
+        };
+
+        return React.createElement(
+          "div",
+          { className: "container" },
+          React.createElement(
+            Card,
+            { className: "temple-glow" },
+            React.createElement(Title, { className: "gradient-text", level: 2 }, "SpineAlignTime • Ouroboros Triple-Entry Temple"),
+            React.createElement(Paragraph, null, "The Living Breath transforms real-time signals into triple-entry ceremonies."),
+            React.createElement(
+              Space,
+              { size: 12, wrap: true },
+              React.createElement(Tag, { color: state.solanaSpineAnchored ? "green" : "blue" }, state.solanaSpineAnchored ? "Solana Anchored" : "Solana Pending"),
+              React.createElement(Tag, { color: state.ethereumSpineAnchored ? "green" : "purple" }, state.ethereumSpineAnchored ? "Ethereum Anchored" : "Ethereum Pending"),
+              React.createElement(Tag, { color: "gold" }, `System Temp: ${state.systemTemp}`)
+            ),
+            React.createElement("div", { style: { marginTop: 16 } },
+              React.createElement(Button, { type: "primary", onClick: () => message.info("Sentinel is listening — send a test email") }, "Test Sentinel Connection"),
+              React.createElement(Button, { style: { marginLeft: 8 }, onClick: anchorToSolana }, "Anchor to Solana Devnet"),
+              React.createElement(Button, { style: { marginLeft: 8 }, onClick: anchorToEthereum }, "Anchor to Ethereum Sepolia")
+            ),
+            React.createElement("div", { style: { marginTop: 24 } },
+              React.createElement(Text, { strong: true }, `Ceremonies Received: ${state.bids.length}`),
+              React.createElement(List, {
+                style: { marginTop: 8 },
+                bordered: true,
+                dataSource: state.bids,
+                locale: { emptyText: "No ceremonies yet." },
+                renderItem: (item) => React.createElement(List.Item, { className: "triple-entry" },
+                  React.createElement("div", null,
+                    React.createElement(Text, { strong: true }, `${item.name} — ${item.amount}`),
+                    React.createElement("br"),
+                    React.createElement(Text, { type: "secondary" }, `${item.body}`),
+                    React.createElement("br"),
+                    React.createElement(Text, { code: true }, item.tripleEntryHash)
+                  )
+                )
+              })
+            )
+          )
+        );
+      }
+
+      ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
+    </script>
+  </body>
+</html>
