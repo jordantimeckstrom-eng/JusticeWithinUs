@@ -1,0 +1,6 @@
+project_id = "juscr-prod-123456"
+app_url    = "https://juscr-sovereign-git-codex-integrate-juscr-sovereign-application-abc123.vercel.app"
+
+# Optional: automatically write GOOGLE_PUBSUB_TOPIC and CRON_SECRET to Vercel.
+# vercel_project_id = "prj_..."
+# vercel_team_id    = "team_..."
