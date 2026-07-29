@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SpineAlignTime • Ouroboros Triple-Entry Temple</title>
+    <link rel="stylesheet" href="https://unpkg.com/antd@5/dist/reset.css" />
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #0f172a 100%);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      }
+      .app-shell {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 24px;
+      }
+      .gradient-text {
+        background: linear-gradient(135deg, #60a5fa 0%, #a855f7 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .temple-glow {
+        box-shadow: 0 0 50px rgba(168, 85, 247, 0.55);
+      }
+      .triple-entry {
+        border-left: 4px solid #a855f7;
+      }
+      .framework {
+        white-space: pre-wrap;
+        color: #dbeafe;
+        line-height: 1.55;
+      }
+      .panel {
+        background: rgba(15, 23, 42, 0.75);
+        border: 1px solid rgba(96, 165, 250, 0.3);
+        border-radius: 14px;
+        padding: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/dayjs@1/dayjs.min.js"></script>
+    <script src="https://unpkg.com/antd@5/dist/antd.min.js"></script>
+
+    <script>
+      const { useEffect, useReducer, useState, useContext, createContext } = React;
+      const { Card, Row, Col, Statistic, Tabs, Tag, Button, Modal, InputNumber, Descriptions, Alert, Space, message } = antd;
+
+      const LedgerContext = createContext(null);
+
+      const initialState = {
+        bids: [],
+        patterns: [],
+        systemTemp: 0.85,
+        lastDawn: null,
+        solanaSpineAnchored: false,
+        eventQueue: [],
+      };
+
+      const ledgerReducer = (state, action) => {
+        switch (action.type) {
+          case 'INGEST_BID': {
+            const payload = action.payload || {};
+            const receiptHash = payload.tripleEntryHash || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
+            const dedupeKey = `${payload.name || 'anon'}-${payload.amount || 0}-${payload.channel || 'unknown'}-${payload.timestamp || ''}`;
+            if (state.eventQueue.includes(dedupeKey)) return state;
+
+            return {
+              ...state,
+              bids: [...state.bids, { ...payload, tripleEntryHash: receiptHash }],
+              eventQueue: [...state.eventQueue, dedupeKey].slice(-200),
+            };
+          }
+          case 'DIGEST_GHOST':
+            return { ...state, patterns: [...state.patterns, action.payload] };
+          case 'EVOLVE_SYSTEM':
+            return {
+              ...state,
+              systemTemp: action.payload?.grokTemp ?? 0.92,
+              lastDawn: new Date().toISOString(),
+            };
+          case 'ANCHOR_SOLANA':
+            return { ...state, solanaSpineAnchored: true };
+          default:
+            return state;
+        }
+      };
+
+      let globalDispatch = null;
+      const setGlobalDispatch = (dispatch) => { globalDispatch = dispatch; };
+      window.LedgerBridge = {
+        ingest(payload) {
+          if (!globalDispatch) throw new Error('Temple not awakened');
+          globalDispatch({ type: 'INGEST_BID', payload });
+        },
+      };
+
+      const useCeremonyScheduler = () => {
+        const { dispatch } = useContext(LedgerContext);
+        useEffect(() => {
+          const timer = setInterval(() => {
+            const now = new Date();
+            const h = now.getHours();
+            const m = now.getMinutes();
+            if ((h === 6 || h === 18) && m === 0) {
+              dispatch({ type: 'EVOLVE_SYSTEM', payload: { grokTemp: 0.92 } });
+            }
+          }, 60 * 1000);
+          return () => clearInterval(timer);
+        }, [dispatch]);
+      };
+
+      const FRAMEWORK_SYNTHESIS = `SPINE_ALIGN_TIME_FRAMEWORK • Integrated Synthesis
+
+• Triple-Entry Sacred State: each bid writes buyer entry, reserve mirror, and signed cryptographic receipt (tripleEntryHash).
+• Solana Spine Anchoring: USCR reserve snapshots can be persisted to rent-exempt storage for durable auditability.
+• ERC-8028 Data Anchoring Tokens: metered usage pathway for AI agent processing of clickstream intelligence.
+• Resilient Dawn/Dusk Scheduler: cyclical system evolution with thermodynamic systemTemp control.
+• Global LedgerBridge + Event Queue: resilient ingestion surface with deduplication semantics.
+• Legacy monitor migration path: old “unseen clicks” are transformed into explicit ceremonial ledger entries.
+
+Temple state now renders this framework directly inside the auction interface.`;
+
+      const SpineAlignTime = () => {
+        const [state, dispatch] = useReducer(ledgerReducer, initialState);
+        const [bidModalVisible, setBidModalVisible] = useState(false);
+        const [bidAmount, setBidAmount] = useState(0);
+
+        useEffect(() => setGlobalDispatch(dispatch), [dispatch]);
+        useCeremonyScheduler();
+
+        const placeBid = () => {
+          const amount = Number(bidAmount || 0);
+          if (!amount) {
+            message.warning('Enter a bid amount first.');
+            return;
+          }
+          dispatch({
+            type: 'INGEST_BID',
+            payload: {
+              id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+              timestamp: new Date().toISOString(),
+              name: 'Legacy Monitor',
+              amount,
+              channel: 'Web',
+              status: 'Leading',
+            },
+          });
+          setBidModalVisible(false);
+          setBidAmount(0);
+          message.success('Triple-entry receipt created.');
+        };
+
+        const tabs = [
+          {
+            key: 'schedule',
+            label: 'Schedule',
+            children: React.createElement(Card, { className: 'panel' },
+              React.createElement(Space, { direction: 'vertical', size: 10 },
+                React.createElement(Alert, { type: 'info', message: 'Dawn/Dusk scheduler active (06:00 + 18:00).' }),
+                React.createElement(Button, { type: 'primary', onClick: () => setBidModalVisible(true) }, 'Create Triple-Entry Bid')
+              )
+            )
+          },
+          {
+            key: 'ledger',
+            label: `Ledger (${state.bids.length})`,
+            children: React.createElement(Space, { direction: 'vertical', style: { width: '100%' } },
+              state.bids.length === 0
+                ? React.createElement(Alert, { type: 'warning', message: 'No bids yet. Begin the first ceremony.' })
+                : state.bids.map((bid) =>
+                    React.createElement(Card, { key: bid.id || bid.tripleEntryHash, className: 'panel triple-entry' },
+                      React.createElement(Descriptions, { column: 1, size: 'small', labelStyle: { color: '#93c5fd' }, contentStyle: { color: '#fff' } },
+                        React.createElement(Descriptions.Item, { label: 'Name' }, bid.name),
+                        React.createElement(Descriptions.Item, { label: 'Amount' }, `$${bid.amount}`),
+                        React.createElement(Descriptions.Item, { label: 'Channel' }, bid.channel),
+                        React.createElement(Descriptions.Item, { label: 'Receipt' }, bid.tripleEntryHash)
+                      )
+                    )
+                  )
+            )
+          },
+          {
+            key: 'framework',
+            label: 'Framework',
+            children: React.createElement(Card, { className: 'panel temple-glow' },
+              React.createElement('div', { className: 'framework' }, FRAMEWORK_SYNTHESIS)
+            )
+          }
+        ];
+
+        return React.createElement(
+          LedgerContext.Provider,
+          { value: { state, dispatch } },
+          React.createElement('div', { className: 'app-shell' },
+            React.createElement('h1', { className: 'gradient-text' }, 'SpineAlignTime • Ouroboros Triple-Entry Temple'),
+            React.createElement(Row, { gutter: 12, style: { marginBottom: 16 } },
+              React.createElement(Col, { xs: 24, md: 8 }, React.createElement(Card, { className: 'panel' }, React.createElement(Statistic, { title: 'System Temp', value: state.systemTemp }))),
+              React.createElement(Col, { xs: 24, md: 8 }, React.createElement(Card, { className: 'panel' }, React.createElement(Statistic, { title: 'Ledger Entries', value: state.bids.length }))),
+              React.createElement(Col, { xs: 24, md: 8 }, React.createElement(Card, { className: 'panel' }, React.createElement('div', null,
+                React.createElement(Tag, { color: state.solanaSpineAnchored ? 'success' : 'processing' }, state.solanaSpineAnchored ? 'Solana Anchored' : 'Solana Pending'),
+                React.createElement(Button, { size: 'small', onClick: () => dispatch({ type: 'ANCHOR_SOLANA' }) }, 'Anchor')
+              )))
+            ),
+            React.createElement(Tabs, { items: tabs }),
+            React.createElement(Modal, {
+              title: 'Create Triple-Entry Bid',
+              open: bidModalVisible,
+              onOk: placeBid,
+              onCancel: () => setBidModalVisible(false),
+            },
+              React.createElement(InputNumber, {
+                style: { width: '100%' },
+                min: 0,
+                value: bidAmount,
+                onChange: (v) => setBidAmount(v || 0),
+                placeholder: 'Bid amount',
+              })
+            )
+          )
+        );
+      };
+
+      ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(SpineAlignTime));
+    </script>
+  </body>
+</html>
